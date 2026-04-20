@@ -1,147 +1,293 @@
-type StatCard = {
-  title: string;
-  published: number;
-  scheduled: number;
-  unpublished: number;
+import { useState, useCallback, useEffect } from "react";
+import Sidebar from "./components/Sidebar";
+import StatCards from "./components/StatCards";
+import QuickActions from "./components/QuickActions";
+import HelpCenter from "./components/HelpCenter";
+import CampaignList from "./components/CampaignList";
+import CampaignEditor from "./components/CampaignEditor";
+import Settings from "./components/Settings";
+import TemplateLibrary, { type TemplateDef } from "./components/TemplateLibrary";
+import AnalyticsDashboard from "./components/AnalyticsDashboard";
+import AutomationCenter from "./components/AutomationCenter";
+import CountdownManager from "./components/CountdownManager";
+import { generateId, mockBadges, mockBanners } from "./data/mock-campaigns";
+import { createCampaign, fetchCampaigns, updateCampaign } from "./api/client";
+import type { Campaign } from "./types/campaign";
+
+type EditorState = {
+  type: "badge" | "banner";
+  campaign: Campaign | null;
 };
 
-type QuickAction = {
-  title: string;
-  subtitle: string;
-  cta: string;
-};
+function createCampaignFromTemplate(type: "badge" | "banner", template: TemplateDef): Campaign {
+  const now = new Date().toISOString();
+  const id = generateId();
+  const rootGroupId = `rg_root_${id}`;
 
-const statCards: StatCard[] = [
-  { title: "Badges", published: 13, scheduled: 1, unpublished: 263 },
-  { title: "Banners", published: 10, scheduled: 1, unpublished: 194 },
-];
-
-const quickActions: QuickAction[] = [
-  {
-    title: "Theme status",
-    subtitle: "Flair is enabled\n2 blocks detected",
-    cta: "View",
-  },
-  {
-    title: "Product updates",
-    subtitle: "Flair Promotions Now\nSupport Native Translations",
-    cta: "View all",
-  },
-  {
-    title: "Need some inspiration?",
-    subtitle: "Browse the gallery to start with customizable templates.",
-    cta: "Visit gallery",
-  },
-];
-
-const helpItems = [
-  "How to get started",
-  "How to run a promotion",
-  "How to troubleshoot",
-];
-
-const sideNav = [
-  "Home",
-  "Orders",
-  "Products",
-  "Customers",
-  "Marketing",
-  "Discounts",
-  "Content",
-  "Markets",
-  "Finance",
-  "Analytics",
-];
-
-const appNav = ["Dashboard", "Badges", "Banners", "Settings"];
+  return {
+    id,
+    type,
+    status: "draft",
+    name: template.name,
+    creative: {
+      text: template.defaultCreative.text ?? "",
+      backgroundColor: template.defaultCreative.backgroundColor,
+      textColor: template.defaultCreative.textColor,
+      borderColor: template.defaultCreative.borderColor,
+      stylePreset: template.defaultCreative.stylePreset,
+      contentMode: "text",
+      textSize: "14px",
+      fontWeight: "700",
+      paddingPreset: "normal",
+      letterSpacingPreset: "normal",
+      borderWidthPreset: "thin",
+      shadowPreset: "none",
+      cornerPreset: type === "banner" ? "square" : "rounded",
+    },
+    ruleGroups: [
+      { id: rootGroupId, parentGroupId: null, operator: "AND", includeMode: "include", sortOrder: 0 },
+    ],
+    ruleConditions: [],
+    placements: [],
+    priority: 10,
+    conflictMode: "replace",
+    schedule: { startsAt: null, endsAt: null, timezone: "America/New_York", isActive: false },
+    targetScope: "product",
+    promotionGroup: null,
+    automationMode: "manual",
+    countdown: {
+      enabled: false,
+      label: "Sale ends in",
+      endsAt: null,
+      urgencyThresholdHours: 24,
+    },
+    linkUrl: null,
+    tags: [],
+    styleConfig: {
+      customCssRaw: "",
+      customCssScoped: "",
+      safeMode: "balanced",
+    },
+    createdAt: now,
+    updatedAt: now,
+  };
+}
 
 export default function App() {
+  const [activeView, setActiveView] = useState("Dashboard");
+  const [badges, setBadges] = useState<Campaign[]>(mockBadges);
+  const [banners, setBanners] = useState<Campaign[]>(mockBanners);
+  const [editor, setEditor] = useState<EditorState | null>(null);
+  const [notice, setNotice] = useState<string>("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const all = await fetchCampaigns();
+        if (cancelled) return;
+
+        setBadges(all.filter((c) => c.type === "badge"));
+        setBanners(all.filter((c) => c.type === "banner"));
+        setNotice("");
+      } catch {
+        if (cancelled) return;
+        setNotice("Using local data fallback. API fetch failed.");
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleNavigate = useCallback((view: string) => {
+    setActiveView(view);
+    setEditor(null);
+  }, []);
+
+  const handleEdit = useCallback(
+    (id: string) => {
+      const all = [...badges, ...banners];
+      const found = all.find((c) => c.id === id);
+      if (found) {
+        setEditor({ type: found.type, campaign: found });
+      }
+    },
+    [badges, banners],
+  );
+
+  const handleAdd = useCallback(
+    (type: "badge" | "banner") => {
+      setEditor({ type, campaign: null });
+    },
+    [],
+  );
+
+  const handleSave = useCallback(
+    async (campaign: Campaign) => {
+      const all = [...badges, ...banners];
+      const exists = all.some((c) => c.id === campaign.id);
+
+      try {
+        const saved = exists
+          ? await updateCampaign(campaign.id, campaign)
+          : await createCampaign(campaign);
+
+        if (saved.type === "badge") {
+          setBadges((prev) => {
+            const idx = prev.findIndex((c) => c.id === saved.id);
+            return idx >= 0
+              ? prev.map((c) => (c.id === saved.id ? saved : c))
+              : [...prev, saved];
+          });
+        } else {
+          setBanners((prev) => {
+            const idx = prev.findIndex((c) => c.id === saved.id);
+            return idx >= 0
+              ? prev.map((c) => (c.id === saved.id ? saved : c))
+              : [...prev, saved];
+          });
+        }
+
+        setNotice("");
+      } catch {
+        // If API fails, keep local save behavior so user can still use the app.
+        if (campaign.type === "badge") {
+          setBadges((prev) => {
+            const idx = prev.findIndex((c) => c.id === campaign.id);
+            return idx >= 0
+              ? prev.map((c) => (c.id === campaign.id ? campaign : c))
+              : [...prev, campaign];
+          });
+        } else {
+          setBanners((prev) => {
+            const idx = prev.findIndex((c) => c.id === campaign.id);
+            return idx >= 0
+              ? prev.map((c) => (c.id === campaign.id ? campaign : c))
+              : [...prev, campaign];
+          });
+        }
+
+        setNotice("Saved locally. API save failed.");
+      }
+
+      setEditor(null);
+    },
+    [badges, banners],
+  );
+
+  const handleCancelEdit = useCallback(() => {
+    setEditor(null);
+  }, []);
+
+  const allCampaigns = [...badges, ...banners];
+  const activeViewLabel = activeView === "Dashboard" ? "Overview" : activeView;
+
+  // If editor is open, show it
+  if (editor) {
+    return (
+      <div className="app-shell">
+        <div className="workspace">
+          <Sidebar activeApp={activeView} onNavigate={handleNavigate} />
+          <main className="content">
+            <section className="workspace-head">
+              <div>
+                <p className="workspace-kicker">Flair Product Badges + CRO</p>
+                <h1>Campaign Builder</h1>
+              </div>
+              <div className="workspace-head-actions">
+                <span className="workspace-pill">Live mode</span>
+              </div>
+            </section>
+            {notice && <div className="panel placeholder-msg">{notice}</div>}
+            <CampaignEditor
+              campaign={editor.campaign}
+              type={editor.type}
+              onSave={handleSave}
+              onCancel={handleCancelEdit}
+            />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <div className="topbar-brand">Shopify</div>
-        <div className="topbar-search-wrap">
-          <input className="topbar-search" placeholder="Search" aria-label="Search" />
-        </div>
-        <div className="topbar-user">Gerber Childrenswear</div>
-      </header>
-
       <div className="workspace">
-        <aside className="sidebar">
-          <div className="side-section">
-            {sideNav.map((item) => (
-              <button key={item} className={`side-link ${item === "Home" ? "active" : ""}`}>
-                {item}
-              </button>
-            ))}
-          </div>
-          <div className="side-label">Apps</div>
-          <div className="side-section">
-            {appNav.map((item) => (
-              <button key={item} className={`side-link ${item === "Dashboard" ? "active app-active" : ""}`}>
-                {item}
-              </button>
-            ))}
-          </div>
-          <div className="side-footer">Settings</div>
-        </aside>
+        <Sidebar activeApp={activeView} onNavigate={handleNavigate} />
 
         <main className="content">
-          <section className="page-head">
-            <h1>Flair Next</h1>
+          <section className="workspace-head">
+            <div>
+              <p className="workspace-kicker">Flair Product Badges + CRO</p>
+              <h1>{activeViewLabel}</h1>
+            </div>
+            <div className="workspace-head-actions">
+              <span className="workspace-pill">{allCampaigns.filter((c) => c.status === "live").length} live</span>
+              <button className="ghost-btn" onClick={() => handleAdd("badge")}>+ New badge</button>
+              <button className="primary-btn" onClick={() => handleAdd("banner")}>+ New banner</button>
+            </div>
           </section>
 
-          <section className="stats-grid">
-            {statCards.map((card) => (
-              <article key={card.title} className="panel stat-panel">
-                <div className="panel-head">
-                  <h2>{card.title}</h2>
-                  <button className="ghost-btn">View {card.title.toLowerCase()}</button>
-                </div>
-                <div className="status-list">
-                  <div className="status-row">
-                    <span className="dot ok" />
-                    <span>{card.published} Published</span>
-                  </div>
-                  <div className="status-row">
-                    <span className="dot warn" />
-                    <span>{card.scheduled} Scheduled</span>
-                  </div>
-                  <div className="status-row">
-                    <span className="dot idle" />
-                    <span>{card.unpublished} Unpublished</span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </section>
+          {notice && <div className="panel placeholder-msg">{notice}</div>}
+          {activeView === "Dashboard" && (
+            <>
+              <section className="page-head">
+                <h1>Promotion Control Center</h1>
+                <p>Build high-converting badges, banners, timers, and rule-based campaigns.</p>
+              </section>
+              <StatCards campaigns={allCampaigns} onViewSection={handleNavigate} />
+              <QuickActions />
+              <HelpCenter />
+            </>
+          )}
 
-          <section className="quick-grid">
-            {quickActions.map((item) => (
-              <article key={item.title} className="panel quick-panel">
-                <div className="panel-head">
-                  <h3>{item.title}</h3>
-                  <button className="ghost-btn">{item.cta}</button>
-                </div>
-                <p>{item.subtitle}</p>
-              </article>
-            ))}
-          </section>
+          {activeView === "Badges" && (
+            <CampaignList
+              campaigns={badges}
+              type="badge"
+              onEdit={handleEdit}
+              onAdd={() => handleAdd("badge")}
+            />
+          )}
 
-          <section className="help-grid">
-            <article className="panel help-main">
-              <h3>Help center</h3>
-              <ul>
-                {helpItems.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-            <article className="panel promo-panel">
-              <p className="promo-kicker">FROM THE BLOG</p>
-              <h3>How to Sell on Shopify - Probably The Most Useful Guide You Will Read</h3>
-            </article>
-          </section>
+          {activeView === "Banners" && (
+            <CampaignList
+              campaigns={banners}
+              type="banner"
+              onEdit={handleEdit}
+              onAdd={() => handleAdd("banner")}
+            />
+          )}
+
+          {activeView === "Templates" && (
+            <TemplateLibrary
+              onApply={(template) => {
+                const draft = createCampaignFromTemplate("banner", template);
+                setEditor({ type: "banner", campaign: draft });
+                setActiveView("Banners");
+              }}
+              onClose={() => setActiveView("Banners")}
+            />
+          )}
+
+          {activeView === "Analytics" && (
+            <AnalyticsDashboard campaigns={[...badges, ...banners]} />
+          )}
+
+          {activeView === "Automations" && (
+            <AutomationCenter campaigns={[...badges, ...banners]} />
+          )}
+
+          {activeView === "Countdowns" && (
+            <CountdownManager campaigns={[...badges, ...banners]} />
+          )}
+
+          {activeView === "Settings" && <Settings />}
         </main>
       </div>
     </div>

@@ -1,19 +1,21 @@
 :root {
-  --font-sans: "Segoe UI", "Inter", "SF Pro Text", "Helvetica Neue", sans-serif;
-  --bg-page: #f3f4f6;
+  --font-sans: "Avenir Next", "Manrope", "Space Grotesk", "Segoe UI", sans-serif;
+  --font-display: "Sora", "Avenir Next", "Manrope", sans-serif;
+  --bg-page: #f6f6f7;
   --bg-surface: #ffffff;
-  --bg-muted: #f8f9fb;
+  --bg-muted: #f6f6f7;
   --bg-topbar: #101113;
-  --text-primary: #1f2124;
-  --text-secondary: #646d78;
+  --text-primary: #202223;
+  --text-secondary: #6d7175;
   --text-inverse: #eef1f6;
-  --border-subtle: #e2e5ea;
-  --border-strong: #c8ced8;
-  --accent: #2b6ff7;
+  --border-subtle: #e1e3e5;
+  --border-strong: #c9cccf;
+  --accent: #2c6ecb;
   --ok: #11835b;
   --warn: #d68f00;
   --idle: #98a1ae;
-  --shadow-soft: 0 1px 3px rgba(10, 18, 30, 0.08);
+  --shadow-soft: 0 1px 0 rgba(22, 29, 37, 0.04);
+  --shadow-card: 0 1px 2px rgba(22, 29, 37, 0.06);
   --radius-lg: 14px;
   --radius-md: 10px;
   --radius-sm: 8px;
@@ -39,7 +41,7 @@ body,
 
 body {
   margin: 0;
-  background: radial-gradient(circle at 20% -30%, #fafbfd 0%, #f3f4f6 50%, #ebeef3 100%);
+  background: var(--bg-page);
   color: var(--text-primary);
   font-family: var(--font-sans);
 }

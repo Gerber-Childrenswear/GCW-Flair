@@ -2,7 +2,7 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
+  box-shadow: none;
   padding: var(--space-4);
 }
 
@@ -21,25 +21,29 @@
 
 .panel h2 {
   font-size: 20px;
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 .panel h3 {
   font-size: 18px;
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 .ghost-btn {
   border: 1px solid var(--border-strong);
-  background: var(--bg-muted);
-  color: #253046;
+  background: #ffffff;
+  color: var(--text-primary);
   border-radius: var(--radius-sm);
-  padding: 6px 10px;
+  padding: 7px 11px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .ghost-btn:hover {
-  background: #eff2f7;
+  background: #f6f6f7;
 }
 
 .status-list {
@@ -92,24 +96,31 @@
   padding: 12px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  background: var(--bg-muted);
-  color: #243145;
+  background: #fafbfb;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .promo-panel {
-  background: linear-gradient(135deg, #e8eefc 0%, #f6ecfb 55%, #fff1e5 100%);
+  background: #fafbfb;
+  border-color: var(--border-subtle);
 }
 
 .promo-kicker {
   margin: 0 0 8px;
   font-size: 12px;
   letter-spacing: 0.3px;
-  color: #4f6cb0;
+  color: var(--text-secondary);
   font-weight: 700;
 }
 
 .promo-panel h3 {
   line-height: 1.35;
-  color: #1f2c3f;
+  color: var(--text-primary);
+}
+
+.placeholder-msg {
+  color: var(--text-secondary);
+  font-size: 15px;
+  margin-top: var(--space-2);
 }
