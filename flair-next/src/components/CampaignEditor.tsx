@@ -476,7 +476,18 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                 <input
                   type="text"
                   placeholder="SKU-001, SKU-002, SKU-003"
-                  onChange={() => {}}
+                  value={(draft.variantTargets ?? []).map((v) => v.sku).join(", ")}
+                  onChange={(e) => {
+                    const skus = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
+                    update({
+                      variantTargets: skus.map((sku, i) => ({
+                        id: `vt_${draft.id}_${i}`,
+                        variantId: sku,
+                        sku,
+                        title: `Variant: ${sku}`,
+                      })),
+                    });
+                  }}
                 />
               </label>
             </fieldset>

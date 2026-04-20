@@ -179,6 +179,49 @@ export default function App() {
     [badges, banners],
   );
 
+  const handleBulkDuplicate = useCallback((ids: Set<string>) => {
+    const allCampaigns = [...badges, ...banners];
+    const toDuplicate = allCampaigns.filter((c) => ids.has(c.id));
+
+    toDuplicate.forEach((campaign) => {
+      const newId = generateId();
+      const duplicate: Campaign = {
+        ...campaign,
+        id: newId,
+        name: `${campaign.name} (Copy)`,
+        status: "draft",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (campaign.type === "badge") {
+        setBadges((prev) => [...prev, duplicate]);
+      } else {
+        setBanners((prev) => [...prev, duplicate]);
+      }
+    });
+  }, [badges, banners]);
+
+  const handleBulkStatusChange = useCallback((ids: Set<string>, newStatus: Campaign["status"]) => {
+    const allCampaigns = [...badges, ...banners];
+    const toUpdate = allCampaigns.filter((c) => ids.has(c.id));
+
+    toUpdate.forEach((campaign) => {
+      const updated = { ...campaign, status: newStatus, updatedAt: new Date().toISOString() };
+
+      if (campaign.type === "badge") {
+        setBadges((prev) => prev.map((c) => (c.id === campaign.id ? updated : c)));
+      } else {
+        setBanners((prev) => prev.map((c) => (c.id === campaign.id ? updated : c)));
+      }
+    });
+  }, []);
+
+  const handleBulkDelete = useCallback((ids: Set<string>) => {
+    setBadges((prev) => prev.filter((c) => !ids.has(c.id)));
+    setBanners((prev) => prev.filter((c) => !ids.has(c.id)));
+  }, []);
+
   const handleCancelEdit = useCallback(() => {
     setEditor(null);
   }, []);
@@ -252,6 +295,9 @@ export default function App() {
               type="badge"
               onEdit={handleEdit}
               onAdd={() => handleAdd("badge")}
+              onBulkDuplicate={handleBulkDuplicate}
+              onBulkStatusChange={handleBulkStatusChange}
+              onBulkDelete={handleBulkDelete}
             />
           )}
 
@@ -261,6 +307,9 @@ export default function App() {
               type="banner"
               onEdit={handleEdit}
               onAdd={() => handleAdd("banner")}
+              onBulkDuplicate={handleBulkDuplicate}
+              onBulkStatusChange={handleBulkStatusChange}
+              onBulkDelete={handleBulkDelete}
             />
           )}
 

@@ -7,6 +7,9 @@ type Props = {
   type: CampaignType;
   onEdit: (id: string) => void;
   onAdd: () => void;
+  onBulkDelete?: (ids: Set<string>) => void;
+  onBulkDuplicate?: (ids: Set<string>) => void;
+  onBulkStatusChange?: (ids: Set<string>, status: CampaignStatus) => void;
 };
 
 type LayoutMode = "grid" | "list";
@@ -20,7 +23,7 @@ const statusFilters: { label: string; value: CampaignStatus | "all" }[] = [
   { label: "Archived", value: "archived" },
 ];
 
-export default function CampaignList({ campaigns, type, onEdit, onAdd }: Props) {
+export default function CampaignList({ campaigns, type, onEdit, onAdd, onBulkDelete, onBulkDuplicate, onBulkStatusChange }: Props) {
   const [statusFilter, setStatusFilter] = useState<CampaignStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [layout, setLayout] = useState<LayoutMode>("grid");
@@ -51,30 +54,18 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd }: Props) 
   };
 
   const handleDuplicateSelected = () => {
-    const selectedCampaigns = filtered.filter((c) => selectedIds.has(c.id));
-    selectedCampaigns.forEach((campaign) => {
-      const duplicate = { ...campaign, id: `camp_${Date.now()}`, name: `${campaign.name} (Copy)`, status: "draft" as const };
-      // In a real app, this would call an onDuplicate callback or API
-      console.log("Duplicate campaign:", duplicate);
-    });
+    onBulkDuplicate?.(selectedIds);
     setSelectedIds(new Set());
   };
 
   const handleBulkStatusChange = (newStatus: CampaignStatus) => {
-    const selectedCampaigns = filtered.filter((c) => selectedIds.has(c.id));
-    selectedCampaigns.forEach((campaign) => {
-      // In a real app, this would call an onBulkStatusChange callback or API
-      console.log("Change status:", campaign.id, newStatus);
-    });
+    onBulkStatusChange?.(selectedIds, newStatus);
     setSelectedIds(new Set());
   };
 
   const handleDeleteSelected = () => {
     if (confirm(`Delete ${selectedIds.size} campaign(s)? This cannot be undone.`)) {
-      selectedIds.forEach((id) => {
-        // In a real app, this would call an onDelete callback or API
-        console.log("Delete campaign:", id);
-      });
+      onBulkDelete?.(selectedIds);
       setSelectedIds(new Set());
     }
   };
