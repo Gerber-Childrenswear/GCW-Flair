@@ -13,6 +13,7 @@ import shopifyAuthRouter from "./routes/shopify-auth";
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 const frontendUrl = process.env.FRONTEND_URL;
+const defaultShop = process.env.DEFAULT_SHOP ?? "gcw-dev.myshopify.com";
 const allowedOrigins = ["http://localhost:5173", "http://localhost:5174", frontendUrl].filter(
   (origin): origin is string => Boolean(origin),
 );
@@ -55,6 +56,19 @@ app.get("/health/config", (_req, res) => {
 });
 
 if (hasStaticBuild) {
+  app.get("/", (req, res) => {
+    const shop = String(req.query.shop ?? "").trim();
+
+    // If someone opens the app root outside Shopify embedded context,
+    // force the OAuth install flow on the target development shop.
+    if (!shop) {
+      res.redirect(`/api/shopify/install?shop=${encodeURIComponent(defaultShop)}`);
+      return;
+    }
+
+    res.sendFile(staticIndex);
+  });
+
   app.use(express.static(staticDir));
 
   app.get("*", (req, res, next) => {
