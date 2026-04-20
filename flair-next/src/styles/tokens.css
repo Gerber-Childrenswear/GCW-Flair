@@ -1,0 +1,50 @@
+:root {
+  --font-sans: "Segoe UI", "Inter", "SF Pro Text", "Helvetica Neue", sans-serif;
+  --bg-page: #f3f4f6;
+  --bg-surface: #ffffff;
+  --bg-muted: #f8f9fb;
+  --bg-topbar: #101113;
+  --text-primary: #1f2124;
+  --text-secondary: #646d78;
+  --text-inverse: #eef1f6;
+  --border-subtle: #e2e5ea;
+  --border-strong: #c8ced8;
+  --accent: #2b6ff7;
+  --ok: #11835b;
+  --warn: #d68f00;
+  --idle: #98a1ae;
+  --shadow-soft: 0 1px 3px rgba(10, 18, 30, 0.08);
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-sm: 8px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 20% -30%, #fafbfd 0%, #f3f4f6 50%, #ebeef3 100%);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+button,
+input {
+  font: inherit;
+}
