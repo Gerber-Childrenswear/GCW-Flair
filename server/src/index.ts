@@ -76,9 +76,9 @@ if (hasStaticBuild) {
       .type("html")
       .send(`<!doctype html>
 <html>
-  <head><meta charset="utf-8" /><title>Flair App</title></head>
+  <head><meta charset="utf-8" /><title>GCW Product Manager</title></head>
   <body style="font-family: Arial, sans-serif; padding: 24px; line-height: 1.5;">
-    <h1>Flair App Server Is Running</h1>
+    <h1>GCW Product Manager - Shopify App</h1>
     <p>${installed ? "Shopify app installation callback received successfully." : "Use the install link below to start Shopify OAuth."}</p>
     <p><a href="${installUrl}">Install on ${shop}</a></p>
     <p><a href="/health">Health</a> | <a href="/health/config">Config</a></p>
@@ -94,7 +94,7 @@ app.use((_req, res) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`🚀 Flair server running at http://localhost:${PORT}`);
+    console.log(`🚀 GCW Product Manager server running at http://localhost:${PORT}`);
   console.log(`   Campaigns API → http://localhost:${PORT}/api/campaigns`);
   console.log(`   Preview API   → http://localhost:${PORT}/api/preview/evaluate`);
   console.log(`   Static UI     → ${hasStaticBuild ? staticIndex : "not detected (dev mode)"}`);

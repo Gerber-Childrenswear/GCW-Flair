@@ -238,7 +238,7 @@ export default function App() {
           <main className="content">
             <section className="workspace-head">
               <div>
-                <p className="workspace-kicker">Flair Product Badges + CRO</p>
+                <p className="workspace-kicker">GCW Product Manager</p>
                 <h1>Campaign Builder</h1>
               </div>
               <div className="workspace-head-actions">
@@ -266,7 +266,7 @@ export default function App() {
         <main className="content">
           <section className="workspace-head">
             <div>
-              <p className="workspace-kicker">Flair Product Badges + CRO</p>
+              <p className="workspace-kicker">GCW Product Manager</p>
               <h1>{activeViewLabel}</h1>
             </div>
             <div className="workspace-head-actions">
