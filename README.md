@@ -45,6 +45,7 @@ From `server/`:
 - The app config was linked and deployed from the local Shopify CLI.
 - Redirects should point to `/api/shopify/callback` on the deployed app domain.
 - Local tunnel usage appeared to be an anonymous Cloudflare Quick Tunnel rather than an authenticated account-backed tunnel.
+- Cloudflare account and named tunnel handoff steps are documented in `CLOUDFLARE_HANDOFF.md`.
 
 ### Recommended next frontend pass
 
