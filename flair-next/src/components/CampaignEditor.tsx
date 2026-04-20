@@ -82,6 +82,12 @@ function createBlank(type: CampaignType): Campaign {
       customCssScoped: "",
       safeMode: "balanced",
     },
+    abTestConfig: undefined,
+    variantTargets: undefined,
+    workflowConfig: undefined,
+    notificationConfig: undefined,
+    metricsConfig: undefined,
+    recommendationConfig: undefined,
     createdAt: now,
     updatedAt: now,
   };
@@ -373,6 +379,247 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                 selected={draft.placements}
                 onChange={(placements: CampaignPlacement[]) => update({ placements })}
               />
+            </fieldset>
+
+            <fieldset className="editor-section">
+              <legend>A/B Testing</legend>
+              <label className="field-label">
+                <input
+                  type="checkbox"
+                  checked={draft.abTestConfig?.enabled ?? false}
+                  onChange={(e) => update({
+                    abTestConfig: {
+                      enabled: e.target.checked,
+                      testName: draft.abTestConfig?.testName ?? "Variant Test",
+                      variants: draft.abTestConfig?.variants ?? [
+                        { id: "var_a", name: "Variant A", creative: draft.creative, allocationPercent: 50 },
+                        { id: "var_b", name: "Variant B", creative: { ...draft.creative, backgroundColor: "#dc2626" }, allocationPercent: 50 },
+                      ],
+                    }
+                  })}
+                />
+                <span>Enable A/B testing for this campaign</span>
+              </label>
+              {draft.abTestConfig?.enabled && (
+                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#f9fafb", borderRadius: "6px" }}>
+                  <label className="field-label">
+                    Test name
+                    <input
+                      type="text"
+                      value={draft.abTestConfig.testName}
+                      onChange={(e) => update({
+                        abTestConfig: { ...draft.abTestConfig!, testName: e.target.value }
+                      })}
+                    />
+                  </label>
+                  <label className="field-label">
+                    Winner criteria
+                    <select
+                      value={draft.abTestConfig.winnerCriteria ?? "conversion"}
+                      onChange={(e) => update({
+                        abTestConfig: { ...draft.abTestConfig!, winnerCriteria: e.target.value as any }
+                      })}
+                    >
+                      <option value="conversion">Conversion Rate</option>
+                      <option value="clicks">Click-Through Rate</option>
+                      <option value="engagement">Engagement</option>
+                      <option value="revenue">Revenue</option>
+                    </select>
+                  </label>
+                  <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: "8px 0 0 0" }}>
+                    {draft.abTestConfig.variants?.length || 0} variant(s) configured
+                  </p>
+                </div>
+              )}
+            </fieldset>
+
+            <fieldset className="editor-section">
+              <legend>Advanced Scheduling</legend>
+              <div className="schedule-grid">
+                <label className="field-label">
+                  Days of week
+                  <input
+                    type="text"
+                    placeholder="mon, wed, fri (leave blank for daily)"
+                    value={draft.schedule.daysOfWeek?.join(", ") ?? ""}
+                    onChange={(e) => updateSchedule({
+                      daysOfWeek: e.target.value ? e.target.value.split(",").map(d => d.trim() as any) : undefined
+                    })}
+                  />
+                </label>
+                <label className="field-label">
+                  Time of day start
+                  <input
+                    type="time"
+                    value={draft.schedule.timeOfDayStart ?? ""}
+                    onChange={(e) => updateSchedule({ timeOfDayStart: e.target.value || undefined })}
+                  />
+                </label>
+                <label className="field-label">
+                  Time of day end
+                  <input
+                    type="time"
+                    value={draft.schedule.timeOfDayEnd ?? ""}
+                    onChange={(e) => updateSchedule({ timeOfDayEnd: e.target.value || undefined })}
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset className="editor-section">
+              <legend>Variant Targeting</legend>
+              <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "0 0 12px 0" }}>
+                Optionally target specific product variants. Leave empty to target all matching products.
+              </p>
+              <label className="field-label">
+                Target specific variants (comma-separated SKUs)
+                <input
+                  type="text"
+                  placeholder="SKU-001, SKU-002, SKU-003"
+                  onChange={() => {}}
+                />
+              </label>
+            </fieldset>
+
+            <fieldset className="editor-section">
+              <legend>Workflows</legend>
+              <label className="field-label">
+                <input
+                  type="checkbox"
+                  checked={draft.workflowConfig?.enabled ?? false}
+                  onChange={(e) => update({
+                    workflowConfig: {
+                      enabled: e.target.checked,
+                      name: draft.workflowConfig?.name ?? "Default Workflow",
+                      trigger: "campaign_start",
+                      steps: [],
+                    }
+                  })}
+                />
+                <span>Enable advanced workflows</span>
+              </label>
+              {draft.workflowConfig?.enabled && (
+                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#f9fafb", borderRadius: "6px" }}>
+                  <label className="field-label">
+                    Workflow trigger
+                    <select
+                      value={draft.workflowConfig.trigger}
+                      onChange={(e) => update({
+                        workflowConfig: { ...draft.workflowConfig!, trigger: e.target.value as any }
+                      })}
+                    >
+                      <option value="campaign_start">Campaign Start</option>
+                      <option value="manual">Manual</option>
+                      <option value="schedule">On Schedule</option>
+                      <option value="performance_milestone">Performance Milestone</option>
+                    </select>
+                  </label>
+                  <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: "8px 0 0 0" }}>
+                    Workflows will execute {draft.workflowConfig.trigger} automatically
+                  </p>
+                </div>
+              )}
+            </fieldset>
+
+            <fieldset className="editor-section">
+              <legend>Notifications</legend>
+              <label className="field-label">
+                <input
+                  type="checkbox"
+                  checked={draft.notificationConfig?.emailOnLaunch ?? false}
+                  onChange={(e) => update({
+                    notificationConfig: {
+                      ...(draft.notificationConfig || {}),
+                      emailOnLaunch: e.target.checked,
+                      emailOnPause: draft.notificationConfig?.emailOnPause ?? false,
+                      emailOnWarnings: draft.notificationConfig?.emailOnWarnings ?? false,
+                      emailAddresses: draft.notificationConfig?.emailAddresses ?? [],
+                    } as any
+                  })}
+                />
+                <span>Email notification on campaign launch</span>
+              </label>
+              <label className="field-label">
+                <input
+                  type="checkbox"
+                  checked={draft.notificationConfig?.emailOnPause ?? false}
+                  onChange={(e) => update({
+                    notificationConfig: {
+                      ...(draft.notificationConfig || {}),
+                      emailOnLaunch: draft.notificationConfig?.emailOnLaunch ?? false,
+                      emailOnPause: e.target.checked,
+                      emailOnWarnings: draft.notificationConfig?.emailOnWarnings ?? false,
+                      emailAddresses: draft.notificationConfig?.emailAddresses ?? [],
+                    } as any
+                  })}
+                />
+                <span>Email notification on pause</span>
+              </label>
+              <label className="field-label">
+                <input
+                  type="checkbox"
+                  checked={draft.notificationConfig?.emailOnWarnings ?? false}
+                  onChange={(e) => update({
+                    notificationConfig: {
+                      ...(draft.notificationConfig || {}),
+                      emailOnLaunch: draft.notificationConfig?.emailOnLaunch ?? false,
+                      emailOnPause: draft.notificationConfig?.emailOnPause ?? false,
+                      emailOnWarnings: e.target.checked,
+                      emailAddresses: draft.notificationConfig?.emailAddresses ?? [],
+                    } as any
+                  })}
+                />
+                <span>Alert on low performance</span>
+              </label>
+            </fieldset>
+
+            <fieldset className="editor-section">
+              <legend>Metrics & ROI</legend>
+              <label className="field-label">
+                <input
+                  type="checkbox"
+                  checked={draft.metricsConfig?.enabled ?? false}
+                  onChange={(e) => update({
+                    metricsConfig: {
+                      enabled: e.target.checked,
+                      trackingEnabled: e.target.checked,
+                      snapshots: [],
+                    }
+                  })}
+                />
+                <span>Enable revenue and ROI tracking</span>
+              </label>
+              {draft.metricsConfig?.enabled && (
+                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#f9fafb", borderRadius: "6px" }}>
+                  <label className="field-label">
+                    ROI target (%)
+                    <input
+                      type="number"
+                      value={draft.metricsConfig.roiTarget ?? 0}
+                      onChange={(e) => update({
+                        metricsConfig: {
+                          ...draft.metricsConfig!,
+                          roiTarget: parseInt(e.target.value) || 0
+                        }
+                      })}
+                    />
+                  </label>
+                  <label className="field-label">
+                    Cost per 1000 impressions ($)
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={draft.metricsConfig.costPerImpression ?? 0}
+                      onChange={(e) => update({
+                        metricsConfig: {
+                          ...draft.metricsConfig!,
+                          costPerImpression: parseFloat(e.target.value) || 0
+                        }
+                      })}
+                    />
+                  </label>
+                </div>
+              )}
             </fieldset>
 
             <fieldset className="editor-section">

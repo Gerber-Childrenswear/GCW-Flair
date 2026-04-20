@@ -3,6 +3,8 @@ import type { Campaign } from "../types/campaign";
 type Props = {
   campaign: Campaign;
   onEdit: (id: string) => void;
+  isSelected?: boolean;
+  onSelect?: (id: string, checked: boolean) => void;
 };
 
 const statusDot: Record<string, string> = {
@@ -13,20 +15,38 @@ const statusDot: Record<string, string> = {
   archived: "idle",
 };
 
-export default function CampaignCard({ campaign, onEdit }: Props) {
+export default function CampaignCard({ campaign, onEdit, isSelected, onSelect }: Props) {
   const lines = campaign.creative.text.split("\n");
   const condCount = campaign.ruleConditions.length;
 
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onSelect) {
+      onSelect(campaign.id, !isSelected);
+    }
+  };
+
   return (
     <article
-      className="campaign-card"
-      onClick={() => onEdit(campaign.id)}
+      className={`campaign-card ${isSelected ? "selected" : ""}`}
+      onClick={() => !isSelected && onEdit(campaign.id)}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") onEdit(campaign.id);
       }}
     >
+      {onSelect && (
+        <div className="campaign-card-checkbox">
+          <input
+            type="checkbox"
+            checked={isSelected || false}
+            onChange={() => {}}
+            onClick={handleCheckboxClick}
+            aria-label={`Select ${campaign.name}`}
+          />
+        </div>
+      )}
       <div
         className="campaign-card-preview"
         style={{

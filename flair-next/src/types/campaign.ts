@@ -77,11 +77,16 @@ export type Creative = {
 };
 
 // ── Schedule ──────────────────────────────────────────────────────────────────
+export type DayOfWeek = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
 export type Schedule = {
   startsAt: string | null;
   endsAt: string | null;
   timezone: string;
   isActive: boolean;
+  daysOfWeek?: DayOfWeek[];
+  timeOfDayStart?: string; // HH:mm
+  timeOfDayEnd?: string;   // HH:mm
 };
 
 export type CountdownConfig = {
@@ -92,12 +97,100 @@ export type CountdownConfig = {
 };
 
 export type TargetScope = "product" | "variant" | "cart";
-export type AutomationMode = "manual" | "scheduled" | "always_on";
+export type AutomationMode = "manual" | "scheduled" | "always_on" | "rule_based" | "inventory_driven" | "performance_triggered";
 
 export type StyleConfig = {
   customCssRaw: string;
   customCssScoped: string;
   safeMode: "strict" | "balanced" | "off";
+};
+
+// ── Variant Targeting ─────────────────────────────────────────────────────────
+export type VariantTarget = {
+  id: string;
+  variantId: string;
+  sku: string;
+  title: string;
+};
+
+// ── A/B Testing ───────────────────────────────────────────────────────────────
+export type ABTestVariant = {
+  id: string;
+  name: string;
+  creative: Creative;
+  allocationPercent: number;
+};
+
+export type ABTestConfig = {
+  enabled: boolean;
+  testName: string;
+  variants: ABTestVariant[];
+  winner?: string; // variant id
+  winnerCriteria?: "conversion" | "clicks" | "engagement" | "revenue";
+  startDate?: string;
+  endDate?: string;
+  minSampleSize?: number;
+};
+
+// ── Workflow Configuration ────────────────────────────────────────────────────
+export type WorkflowStep = {
+  id: string;
+  type: "delay" | "condition" | "action" | "notification";
+  delayHours?: number;
+  condition?: RuleGroup;
+  action?: string;
+  notificationType?: "email" | "webhook";
+};
+
+export type WorkflowConfig = {
+  enabled: boolean;
+  name: string;
+  trigger: "campaign_start" | "manual" | "schedule" | "performance_milestone";
+  steps: WorkflowStep[];
+};
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+export type NotificationConfig = {
+  emailOnLaunch: boolean;
+  emailOnPause: boolean;
+  emailOnWarnings: boolean;
+  emailAddresses: string[];
+  webhookUrl?: string;
+  alertThresholds?: {
+    lowPerformanceRatio?: number;
+    lowCTR?: number;
+    conversionDrop?: number;
+  };
+};
+
+// ── Metrics & ROI ─────────────────────────────────────────────────────────────
+export type MetricsSnapshot = {
+  timestamp: string;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  revenue: number;
+  avgOrderValue: number;
+};
+
+export type MetricsConfig = {
+  enabled: boolean;
+  trackingEnabled: boolean;
+  conversionPixel?: string;
+  roiTarget?: number;
+  costPerImpression?: number;
+  costPerClick?: number;
+  snapshots: MetricsSnapshot[];
+};
+
+// ── Smart Recommendations ─────────────────────────────────────────────────────
+export type RecommendationConfig = {
+  enabled: boolean;
+  basedOnInventory: boolean;
+  basedOnSales: boolean;
+  basedOnPerformance: boolean;
+  recommendations: string[];
+  lastUpdated?: string;
 };
 
 // ── Campaign ──────────────────────────────────────────────────────────────────
@@ -120,6 +213,14 @@ export type Campaign = {
   linkUrl?: string | null;
   tags?: string[];
   styleConfig?: StyleConfig;
+  // New features
+  variantTargets?: VariantTarget[];
+  abTestConfig?: ABTestConfig;
+  workflowConfig?: WorkflowConfig;
+  notificationConfig?: NotificationConfig;
+  metricsConfig?: MetricsConfig;
+  recommendationConfig?: RecommendationConfig;
+  // Metadata
   createdAt: string;
   updatedAt: string;
 };
