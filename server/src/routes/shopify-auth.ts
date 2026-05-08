@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { Router } from "express";
 import { v4 as uuid } from "uuid";
+import { registerToken, registerRequiredWebhooks, ensureScriptTag } from "../lib/shopify-api";
 
 type OAuthState = {
   shop: string;
@@ -126,6 +127,7 @@ function loadInstalledShopsFromDisk() {
       }
 
       installedShops.set(item.shop, item);
+      registerToken(item.shop, item.accessToken);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
@@ -328,6 +330,21 @@ router.get("/callback", async (req, res) => {
       installedAt: new Date().toISOString(),
     });
     saveInstalledShopsToDisk();
+    registerToken(shop, accessToken);
+
+    // Fire-and-forget post-install: register webhooks and script tag.
+    const appUrl = env.appUrl.replace(/\/$/, "");
+    const flairScriptSrc = `${appUrl}/flair.js`;
+    void (async () => {
+      try {
+        await registerRequiredWebhooks(shop, appUrl);
+        await ensureScriptTag(shop, flairScriptSrc);
+        console.log(`[shopify-auth] Post-install complete for ${shop}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[shopify-auth] Post-install error for ${shop}: ${msg}`);
+      }
+    })();
 
     const redirect = new URL(env.frontendUrl);
     redirect.searchParams.set("installed", "1");

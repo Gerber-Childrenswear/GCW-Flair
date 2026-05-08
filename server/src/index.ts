@@ -9,6 +9,12 @@ import placementsRouter from "./routes/placements";
 import analyticsRouter from "./routes/analytics";
 import templatesRouter from "./routes/templates";
 import shopifyAuthRouter from "./routes/shopify-auth";
+import webhooksRouter from "./routes/webhooks";
+import scriptTagsRouter from "./routes/script-tags";
+import { initCampaignStore } from "./data/store";
+
+// Init campaign persistence before handling any requests.
+initCampaignStore();
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
@@ -30,12 +36,15 @@ app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: "1mb" }));
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-app.use("/api/campaigns",  campaignsRouter);
-app.use("/api/preview",    previewRouter);
-app.use("/api/placements", placementsRouter);
-app.use("/api/analytics",  analyticsRouter);
-app.use("/api/templates",  templatesRouter);
-app.use("/api/shopify",    shopifyAuthRouter);
+app.use("/api/campaigns",    campaignsRouter);
+app.use("/api/preview",      previewRouter);
+app.use("/api/placements",   placementsRouter);
+app.use("/api/analytics",    analyticsRouter);
+app.use("/api/templates",    templatesRouter);
+app.use("/api/shopify",      shopifyAuthRouter);
+app.use("/api/script-tags",  scriptTagsRouter);
+// Webhooks use raw body parsing (handled inside the router itself).
+app.use("/webhooks",         express.raw({ type: "application/json" }), webhooksRouter);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
@@ -90,9 +99,9 @@ if (hasStaticBuild) {
       .type("html")
       .send(`<!doctype html>
 <html>
-  <head><meta charset="utf-8" /><title>GCW Product Manager</title></head>
+  <head><meta charset="utf-8" /><title>Flair — Shopify App</title></head>
   <body style="font-family: Arial, sans-serif; padding: 24px; line-height: 1.5;">
-    <h1>GCW Product Manager - Shopify App</h1>
+    <h1>Flair — Shopify App</h1>
     <p>${installed ? "Shopify app installation callback received successfully." : "Use the install link below to start Shopify OAuth."}</p>
     <p><a href="${installUrl}">Install on ${shop}</a></p>
     <p><a href="/health">Health</a> | <a href="/health/config">Config</a></p>
@@ -108,7 +117,7 @@ app.use((_req, res) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-    console.log(`🚀 GCW Product Manager server running at http://localhost:${PORT}`);
+    console.log(`🚀 GCW Flair server running at http://localhost:${PORT}`);
   console.log(`   Campaigns API → http://localhost:${PORT}/api/campaigns`);
   console.log(`   Preview API   → http://localhost:${PORT}/api/preview/evaluate`);
   console.log(`   Static UI     → ${hasStaticBuild ? staticIndex : "not detected (dev mode)"}`);

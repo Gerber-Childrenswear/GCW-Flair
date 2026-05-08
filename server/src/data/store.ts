@@ -1,7 +1,42 @@
+import fs from "fs";
+import path from "path";
 import { v4 as uuid } from "uuid";
 import type {
   Campaign, Template, Placement, AnalyticsEvent, CampaignMetrics,
 } from "../types/index";
+
+// ── Campaign file persistence ─────────────────────────────────────────────────
+const campaignStorePath = process.env.CAMPAIGN_STORE_PATH
+  ? path.resolve(process.env.CAMPAIGN_STORE_PATH)
+  : path.resolve(process.cwd(), "data", "campaigns.json");
+
+let _persistenceEnabled = false;
+
+function loadCampaignsFromDisk(): Campaign[] | null {
+  try {
+    if (!fs.existsSync(campaignStorePath)) return null;
+    const raw = fs.readFileSync(campaignStorePath, "utf8");
+    const parsed = JSON.parse(raw) as Campaign[];
+    if (!Array.isArray(parsed)) return null;
+    console.log(`[store] Loaded ${parsed.length} campaigns from ${campaignStorePath}`);
+    return parsed;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[store] Failed to load campaigns from disk: ${msg}`);
+    return null;
+  }
+}
+
+export function persistCampaigns(list: Campaign[]): void {
+  if (!_persistenceEnabled) return;
+  try {
+    fs.mkdirSync(path.dirname(campaignStorePath), { recursive: true });
+    fs.writeFileSync(campaignStorePath, JSON.stringify(list, null, 2), "utf8");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[store] Failed to persist campaigns: ${msg}`);
+  }
+}
 
 // ── Placement Registry (canonical slots) ─────────────────────────────────────
 export const placements: Placement[] = [
@@ -161,10 +196,12 @@ export function saveCampaign(data: Campaign): Campaign {
   const idx = campaigns.findIndex((c) => c.id === data.id);
   if (idx >= 0) {
     campaigns[idx] = { ...data, updatedAt: new Date().toISOString() };
+    persistCampaigns(campaigns);
     return campaigns[idx];
   }
   const created = { ...data, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   campaigns.push(created);
+  persistCampaigns(campaigns);
   return created;
 }
 
@@ -172,5 +209,20 @@ export function deleteCampaign(id: string): boolean {
   const idx = campaigns.findIndex((c) => c.id === id);
   if (idx < 0) return false;
   campaigns.splice(idx, 1);
+  persistCampaigns(campaigns);
   return true;
+}
+
+// ── Bootstrap: load persisted campaigns over seed data ────────────────────────
+// Called once from index.ts after env is ready.
+export function initCampaignStore(): void {
+  _persistenceEnabled = true;
+  const persisted = loadCampaignsFromDisk();
+  if (persisted && persisted.length > 0) {
+    campaigns.length = 0;
+    campaigns.push(...persisted);
+  } else {
+    // First run — persist the seed data so future restarts are consistent.
+    persistCampaigns(campaigns);
+  }
 }
