@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import Topbar from "./components/Topbar";
 import Sidebar from "./components/Sidebar";
 import StatCards from "./components/StatCards";
 import QuickActions from "./components/QuickActions";
@@ -233,12 +234,13 @@ export default function App() {
   if (editor) {
     return (
       <div className="app-shell">
+        <Topbar />
         <div className="workspace">
           <Sidebar activeApp={activeView} onNavigate={handleNavigate} />
           <main className="content">
             <section className="workspace-head">
               <div>
-                <p className="workspace-kicker">GCW Product Manager</p>
+                <p className="workspace-kicker">Flair</p>
                 <h1>Campaign Builder</h1>
               </div>
               <div className="workspace-head-actions">
@@ -260,13 +262,14 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <Topbar />
       <div className="workspace">
         <Sidebar activeApp={activeView} onNavigate={handleNavigate} />
 
         <main className="content">
           <section className="workspace-head">
             <div>
-              <p className="workspace-kicker">GCW Product Manager</p>
+              <p className="workspace-kicker">Flair</p>
               <h1>{activeViewLabel}</h1>
             </div>
             <div className="workspace-head-actions">
@@ -279,10 +282,6 @@ export default function App() {
           {notice && <div className="panel placeholder-msg">{notice}</div>}
           {activeView === "Dashboard" && (
             <>
-              <section className="page-head">
-                <h1>Promotion Control Center</h1>
-                <p>Build high-converting badges, banners, timers, and rule-based campaigns.</p>
-              </section>
               <StatCards campaigns={allCampaigns} onViewSection={handleNavigate} />
               <QuickActions />
               <HelpCenter />

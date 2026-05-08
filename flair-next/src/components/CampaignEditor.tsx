@@ -634,9 +634,9 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
             </fieldset>
 
             <fieldset className="editor-section">
-              <legend>Function Custom CSS</legend>
+              <legend>Custom CSS</legend>
               <p className="css-note">
-                CSS will be scoped to <strong>{`.flair-campaign-${draft.id}`}</strong> at render time.
+                CSS is scoped to <strong>{`.flair-campaign-${draft.id}`}</strong> at render time.
               </p>
 
               <div className="schedule-grid">

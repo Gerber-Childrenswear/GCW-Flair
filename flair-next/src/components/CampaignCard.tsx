@@ -61,6 +61,7 @@ export default function CampaignCard({ campaign, onEdit, isSelected, onSelect }:
           </div>
         ))}
       </div>
+      <div className="campaign-card-name">{campaign.name || lines[0] || "Untitled"}</div>
       <div className="campaign-card-meta">
         <span className={`dot ${statusDot[campaign.status]}`} />
         <span className="campaign-card-conditions">

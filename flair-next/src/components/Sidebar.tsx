@@ -9,8 +9,8 @@ export default function Sidebar({ activeApp, onNavigate }: Props) {
   return (
     <aside className="sidebar">
       <div className="side-brand">
-        <h2>Flair Next</h2>
-        <p>Conversion Studio</p>
+        <h2>Flair</h2>
+        <p>Product Badges &amp; Labels</p>
       </div>
       <div className="side-label">Workspace</div>
       <div className="side-section">
@@ -24,7 +24,7 @@ export default function Sidebar({ activeApp, onNavigate }: Props) {
           </button>
         ))}
       </div>
-      <div className="side-footer">Flair Product Badges + CRO</div>
+      <div className="side-footer">Flair · Gerber Childrenswear</div>
     </aside>
   );
 }
