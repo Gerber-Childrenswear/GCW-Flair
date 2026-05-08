@@ -1,0 +1,90 @@
+Flair Next - Cross-Desktop Handoff Plan
+Date: 2026-04-20
+
+Current status
+- New project folder created at flair-next.
+- UI design system shell implemented and working without build tools:
+  - index.html
+  - app.css
+  - app.js
+- React/Vite scaffold files are present but local machine blocks native npm binaries (esbuild EPERM), so build/dev server could not run on this desktop.
+
+Goal on the other desktop
+- Run full React + TypeScript + Vite workflow.
+- Keep the current visual system and move static shell into componentized React screens.
+- Begin Campaign Studio Phase 1 implementation.
+
+Step 1: Pull latest code
+1. git pull origin main
+2. cd flair-next
+
+Step 2: Clean install
+1. Remove old modules/lock if needed:
+   - PowerShell:
+     if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
+     if (Test-Path package-lock.json) { Remove-Item -Force package-lock.json }
+2. npm install
+3. npm run dev
+
+Step 3: Verify base files
+- Static shell entry:
+  - flair-next/index.html
+  - flair-next/app.css
+  - flair-next/app.js
+- React scaffold entry:
+  - flair-next/src/main.tsx
+  - flair-next/src/App.tsx
+  - flair-next/src/styles/tokens.css
+  - flair-next/src/styles/layout.css
+  - flair-next/src/styles/components.css
+
+Step 4: Migrate static shell into React
+1. Keep app.css token values as source of truth.
+2. Port topbar/sidebar/dashboard sections from app.js into src/App.tsx JSX.
+3. Split into components:
+   - src/components/Topbar.tsx
+   - src/components/Sidebar.tsx
+   - src/components/StatCards.tsx
+   - src/components/QuickActions.tsx
+   - src/components/HelpCenter.tsx
+4. Keep responsive breakpoints from app.css/layout.css.
+
+Step 5: Start Campaign Studio Phase 1
+Backend contracts (to add)
+- GET /api/campaigns
+- POST /api/campaigns
+- PATCH /api/campaigns/:id
+- POST /api/campaigns/:id/publish
+- POST /api/campaigns/:id/pause
+- POST /api/campaigns/:id/archive
+- POST /api/campaigns/evaluate
+
+Campaign model (MVP)
+- id
+- type: badge | banner
+- status: draft | scheduled | live | paused | archived
+- title
+- creative: text, colors, style preset
+- targeting: condition groups (AND/OR)
+- priority
+- schedule: startsAt, endsAt, timezone
+- createdAt, updatedAt
+
+Frontend screens (MVP)
+- Campaign list table with status filters and quick actions.
+- Campaign editor with:
+  - creative controls
+  - targeting rule builder
+  - priority and schedule inputs
+  - live preview panel
+- Rule test panel to explain why a campaign would or would not render.
+
+Step 6: QA checklist
+- npm run build passes.
+- Mobile layout at <=1100px and <=768px remains usable.
+- Keyboard focus visible for all controls.
+- No console errors in dashboard route.
+
+Notes
+- If both static and React versions are kept temporarily, use one entry path at a time to avoid confusion.
+- Recommended final direction: React entry only, with static shell removed after migration.

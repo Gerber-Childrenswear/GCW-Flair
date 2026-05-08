@@ -1,0 +1,2 @@
+# FlairBeTrippin
+Flair app replacement
