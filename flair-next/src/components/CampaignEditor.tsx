@@ -174,6 +174,18 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
 
         <div className="flair-builder-grid">
           <section className="flair-builder-main">
+            {/* Campaign name */}
+            <fieldset className="editor-section editor-section--compact">
+              <legend>{type === "badge" ? "Badge" : "Banner"} name</legend>
+              <input
+                className="editor-name-input"
+                type="text"
+                placeholder={`e.g. Summer sale ${type}`}
+                value={draft.name}
+                onChange={(e) => update({ name: e.target.value })}
+              />
+            </fieldset>
+
             <fieldset className="editor-section">
               <legend>Preview</legend>
               <CampaignPreview campaign={draft} />
@@ -203,12 +215,48 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
               <label className="field-label">
                 {type === "badge" ? "Badge text" : "Banner text"}
                 <textarea
+                  id="creative-text-area"
                   className="field-textarea"
                   rows={4}
                   value={draft.creative.text}
                   onChange={(e) => updateCreative({ text: e.target.value })}
                 />
               </label>
+
+              {/* Dynamic text token insertion */}
+              <div className="dynamic-text-bar">
+                <span>Insert:</span>
+                {[
+                  { label: "{{sale_percent_max}}", title: "Max sale %" },
+                  { label: "{{sale_amount_max}}", title: "Max $ savings" },
+                  { label: "{{inventory_total}}", title: "Stock remaining" },
+                  { label: "{{customer_first_name}}", title: "Customer first name" },
+                  { label: "{{price_max_discount_percent_20}}", title: "Calculated discount price" },
+                ].map(({ label, title }) => (
+                  <button
+                    key={label}
+                    className="token-btn"
+                    title={title}
+                    onClick={() => {
+                      const el = document.getElementById("creative-text-area") as HTMLTextAreaElement | null;
+                      if (el) {
+                        const start = el.selectionStart ?? draft.creative.text.length;
+                        const end   = el.selectionEnd   ?? start;
+                        const next  = draft.creative.text.slice(0, start) + label + draft.creative.text.slice(end);
+                        updateCreative({ text: next });
+                        requestAnimationFrame(() => {
+                          el.selectionStart = el.selectionEnd = start + label.length;
+                          el.focus();
+                        });
+                      } else {
+                        updateCreative({ text: draft.creative.text + label });
+                      }
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
 
               {type === "banner" && (
                 <div className="css-snippet-row">
@@ -380,6 +428,10 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                 onChange={(placements: CampaignPlacement[]) => update({ placements })}
               />
             </fieldset>
+
+            <details className="advanced-section">
+              <summary>Advanced options</summary>
+              <div className="advanced-section-body">
 
             <fieldset className="editor-section">
               <legend>A/B Testing</legend>
@@ -633,31 +685,33 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
               )}
             </fieldset>
 
+              </div>{/* end advanced-section-body */}
+            </details>
+
             <fieldset className="editor-section">
               <legend>Custom CSS</legend>
-              <p className="css-note">
-                CSS is scoped to <strong>{`.flair-campaign-${draft.id}`}</strong> at render time.
-              </p>
 
-              <div className="schedule-grid">
-                <label className="field-label">
-                  CSS safety mode
-                  <select
-                    value={draft.styleConfig?.safeMode ?? "balanced"}
-                    onChange={(e) => updateStyleConfig({ safeMode: e.target.value as "strict" | "balanced" | "off" })}
-                  >
-                    <option value="strict">Strict (most restrictive)</option>
-                    <option value="balanced">Balanced</option>
-                    <option value="off">Off (advanced)</option>
-                  </select>
-                </label>
+              <div className="css-safe-mode-row">
+                <label>Safety mode</label>
+                <select
+                  value={draft.styleConfig?.safeMode ?? "balanced"}
+                  onChange={(e) => updateStyleConfig({ safeMode: e.target.value as "strict" | "balanced" | "off" })}
+                >
+                  <option value="strict">Strict (most restrictive)</option>
+                  <option value="balanced">Balanced</option>
+                  <option value="off">Off (advanced)</option>
+                </select>
               </div>
 
-              <label className="field-label">
-                Custom CSS
+              <div className="css-code-box">
+                <div className="css-code-box-header">
+                  <span>CSS</span>
+                  <span className="css-code-box-scope">{`.flair-campaign-${draft.id}`}</span>
+                </div>
                 <textarea
-                  className="field-textarea css-textarea"
-                  rows={10}
+                  id="css-editor-area"
+                  className="css-code-textarea"
+                  rows={12}
                   value={draft.styleConfig?.customCssRaw ?? ""}
                   onChange={(e) =>
                     updateStyleConfig({
@@ -665,39 +719,50 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                       customCssScoped: e.target.value,
                     })
                   }
-                  placeholder={".flair-campaign {\n  border-radius: 12px;\n  box-shadow: 0 6px 18px rgba(17, 37, 63, 0.18);\n}\n\n.flair-campaign .headline {\n  letter-spacing: 0.08em;\n}"}
+                  placeholder={`.flair-campaign {\n  border-radius: 12px;\n  box-shadow: 0 6px 18px rgba(17, 37, 63, 0.18);\n}\n\n.flair-campaign .headline {\n  letter-spacing: 0.08em;\n}`}
+                  spellCheck={false}
                 />
-              </label>
-
-              <div className="css-snippet-row">
-                <button
-                  className="ghost-btn"
-                  onClick={() =>
-                    updateStyleConfig({
-                      customCssRaw: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  border-radius: 14px;\n}`.trim(),
-                      customCssScoped: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  border-radius: 14px;\n}`.trim(),
-                    })
-                  }
-                >
-                  + Rounded
-                </button>
-                <button
-                  className="ghost-btn"
-                  onClick={() =>
-                    updateStyleConfig({
-                      customCssRaw: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}`.trim(),
-                      customCssScoped: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}`.trim(),
-                    })
-                  }
-                >
-                  + Bold headline
-                </button>
-                <button
-                  className="ghost-btn"
-                  onClick={() => updateStyleConfig({ customCssRaw: "", customCssScoped: "" })}
-                >
-                  Clear CSS
-                </button>
+                <div className="css-code-footer">
+                  <button
+                    className="css-snippet-btn"
+                    onClick={() =>
+                      updateStyleConfig({
+                        customCssRaw: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  border-radius: 14px;\n}`.trim(),
+                        customCssScoped: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  border-radius: 14px;\n}`.trim(),
+                      })
+                    }
+                  >
+                    + Rounded corners
+                  </button>
+                  <button
+                    className="css-snippet-btn"
+                    onClick={() =>
+                      updateStyleConfig({
+                        customCssRaw: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}`.trim(),
+                        customCssScoped: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}`.trim(),
+                      })
+                    }
+                  >
+                    + Bold headline
+                  </button>
+                  <button
+                    className="css-snippet-btn"
+                    onClick={() =>
+                      updateStyleConfig({
+                        customCssRaw: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  animation: flair-pulse 1.8s ease-in-out infinite;\n}\n@keyframes flair-pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.65; }\n}`.trim(),
+                        customCssScoped: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  animation: flair-pulse 1.8s ease-in-out infinite;\n}\n@keyframes flair-pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.65; }\n}`.trim(),
+                      })
+                    }
+                  >
+                    + Pulse animation
+                  </button>
+                  <button
+                    className="css-snippet-btn css-snippet-btn--clear"
+                    onClick={() => updateStyleConfig({ customCssRaw: "", customCssScoped: "" })}
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
             </fieldset>
           </section>

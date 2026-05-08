@@ -1142,3 +1142,205 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* -- Dynamic text token toolbar -- */
+.dynamic-text-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px 0 2px;
+}
+
+.dynamic-text-bar span {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 2px;
+}
+
+.token-btn {
+  border: 1px solid var(--border-strong);
+  background: #f6f6f7;
+  color: var(--text-primary);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-family: "Consolas", "Courier New", monospace;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.token-btn:hover {
+  background: #e8ecf0;
+  border-color: var(--border-strong);
+}
+
+/* -- Campaign name input at top of editor -- */
+.editor-name-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.editor-name-row label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* -- Collapsible advanced sections -- */
+.advanced-section {
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.advanced-section > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-secondary);
+}
+
+.advanced-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced-section > summary::after {
+  content: "+";
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-secondary);
+}
+
+.advanced-section[open] > summary::after {
+  content: "-";
+}
+
+.advanced-section[open] > summary {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.advanced-section-body {
+  padding: 12px 14px;
+  display: grid;
+  gap: 10px;
+}
+
+/* -- CSS code box -- */
+.css-code-box {
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1e1e2e;
+}
+
+.css-code-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: #2a2a3e;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.css-code-box-scope {
+  font-family: "Consolas", "Courier New", monospace;
+  color: #7dd3fc;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.css-code-textarea {
+  width: 100%;
+  min-height: 200px;
+  border: none;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 12px;
+  resize: vertical;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.css-code-textarea::placeholder {
+  color: rgba(205, 214, 244, 0.3);
+}
+
+.css-code-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #2a2a3e;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-wrap: wrap;
+}
+
+.css-snippet-btn {
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+  border-radius: 5px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.css-snippet-btn:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.css-snippet-btn--clear {
+  margin-left: auto;
+  border-color: rgba(220,38,38,0.4);
+  color: rgba(248,113,113,0.85);
+}
+
+.css-snippet-btn--clear:hover {
+  background: rgba(220,38,38,0.12);
+}
+
+.css-safe-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.css-safe-mode-row label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.css-safe-mode-row select {
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: #ffffff;
+}
