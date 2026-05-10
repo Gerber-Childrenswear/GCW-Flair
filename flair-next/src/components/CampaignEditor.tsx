@@ -5,6 +5,13 @@ import RuleBuilder from "./RuleBuilder";
 import PlacementPicker from "./PlacementPicker";
 import TemplateLibrary, { type TemplateDef } from "./TemplateLibrary";
 import { generateId } from "../data/mock-campaigns";
+import {
+  DESIGN_ASSETS,
+  DESIGN_PRESETS,
+  getDefaultDesignSystemConfig,
+  getDesignPresetById,
+  applyDesignPresetToCreative,
+} from "../data/design-system";
 
 type Props = {
   campaign: Campaign | null;
@@ -34,10 +41,70 @@ const borderWidthOptions = ["none", "thin", "medium"] as const;
 const shadowOptions = ["none", "small", "medium"] as const;
 const cornerOptions = ["square", "rounded", "pill"] as const;
 
+function compileScopedCss(rawCss: string, campaignId: string, safeMode: "strict" | "balanced" | "off"): string {
+  const trimmed = rawCss.trim();
+  if (!trimmed) return "";
+
+  let css = trimmed;
+  const scopeClass = `.flair-campaign-${campaignId}`;
+
+  // Block high-risk patterns outside of explicit "off" mode.
+  if (safeMode !== "off") {
+    css = css
+      .replace(/@import[^;]*;?/gi, "")
+      .replace(/expression\s*\([^)]*\)/gi, "")
+      .replace(/javascript\s*:/gi, "");
+  }
+
+  // Strict mode also strips fixed positioning to avoid layout takeover in preview.
+  if (safeMode === "strict") {
+    css = css
+      .replace(/position\s*:\s*fixed\s*;?/gi, "")
+      .replace(/z-index\s*:\s*\d+\s*;?/gi, "");
+  }
+
+  const blocks = css.split("}");
+  const scopedBlocks = blocks
+    .map((block) => {
+      const parts = block.split("{");
+      if (parts.length < 2) return "";
+
+      const selectorPart = parts[0].trim();
+      const body = parts.slice(1).join("{").trim();
+      if (!selectorPart || !body) return "";
+
+      if (selectorPart.startsWith("@")) {
+        return `${selectorPart} { ${body} }`;
+      }
+
+      const scopedSelector = selectorPart
+        .split(",")
+        .map((selector) => selector.trim())
+        .filter(Boolean)
+        .map((selector) => {
+          if (selector.includes(".flair-campaign")) {
+            return selector
+              .replace(/\.flair-campaign-[A-Za-z0-9_-]+/g, scopeClass)
+              .replace(/\.flair-campaign\b/g, scopeClass);
+          }
+          return `${scopeClass} ${selector}`;
+        })
+        .join(", ");
+
+      return `${scopedSelector} { ${body} }`;
+    })
+    .filter(Boolean)
+    .join("\n");
+
+  return scopedBlocks;
+}
+
 function createBlank(type: CampaignType): Campaign {
   const now = new Date().toISOString();
   const id  = generateId();
   const rootGroupId = `rg_root_${id}`;
+  const designSystemConfig = getDefaultDesignSystemConfig();
+  const defaultPreset = getDesignPresetById(designSystemConfig.defaultPresetId);
   return {
     id,
     type,
@@ -45,17 +112,17 @@ function createBlank(type: CampaignType): Campaign {
     name: "",
     creative: {
       text: "",
-      backgroundColor: "#1a3a5c",
-      textColor: "#ffffff",
-      borderColor: "#1a3a5c",
-      stylePreset: "solid-dark",
+      backgroundColor: defaultPreset?.creative.backgroundColor ?? "#1a3a5c",
+      textColor: defaultPreset?.creative.textColor ?? "#ffffff",
+      borderColor: defaultPreset?.creative.borderColor ?? "#1a3a5c",
+      stylePreset: defaultPreset?.creative.stylePreset ?? "solid-dark",
       contentMode: "text",
-      textSize: "14px",
-      fontWeight: "700",
-      paddingPreset: "normal",
-      letterSpacingPreset: "normal",
-      borderWidthPreset: "thin",
-      shadowPreset: "none",
+      textSize: defaultPreset?.creative.textSize ?? "14px",
+      fontWeight: defaultPreset?.creative.fontWeight ?? "700",
+      paddingPreset: defaultPreset?.creative.paddingPreset ?? "normal",
+      letterSpacingPreset: defaultPreset?.creative.letterSpacingPreset ?? "normal",
+      borderWidthPreset: defaultPreset?.creative.borderWidthPreset ?? "thin",
+      shadowPreset: defaultPreset?.creative.shadowPreset ?? "none",
       cornerPreset: type === "banner" ? "square" : "rounded",
     },
     ruleGroups: [
@@ -82,6 +149,7 @@ function createBlank(type: CampaignType): Campaign {
       customCssScoped: "",
       safeMode: "balanced",
     },
+    designSystemConfig,
     abTestConfig: undefined,
     variantTargets: undefined,
     workflowConfig: undefined,
@@ -90,6 +158,14 @@ function createBlank(type: CampaignType): Campaign {
     recommendationConfig: undefined,
     createdAt: now,
     updatedAt: now,
+  };
+}
+
+function hydrateDesignSystemConfig(campaign: Campaign): Campaign {
+  if (campaign.designSystemConfig) return campaign;
+  return {
+    ...campaign,
+    designSystemConfig: getDefaultDesignSystemConfig(),
   };
 }
 
@@ -102,7 +178,7 @@ function toTagArray(input: string): string[] {
 }
 
 export default function CampaignEditor({ campaign, type, onSave, onCancel }: Props) {
-  const [draft, setDraft] = useState<Campaign>(campaign ?? createBlank(type));
+  const [draft, setDraft] = useState<Campaign>(hydrateDesignSystemConfig(campaign ?? createBlank(type)));
   const [showTemplates, setShowTemplates] = useState(false);
   const [showLinkEditor, setShowLinkEditor] = useState(Boolean(campaign?.linkUrl));
   const [showTagsEditor, setShowTagsEditor] = useState(Boolean(campaign?.tags?.length));
@@ -127,6 +203,75 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
     });
   };
 
+  const updateDesignSystemConfig = (patch: Partial<NonNullable<Campaign["designSystemConfig"]>>) => {
+    const base = draft.designSystemConfig ?? getDefaultDesignSystemConfig();
+    update({
+      designSystemConfig: {
+        ...base,
+        ...patch,
+      },
+    });
+  };
+
+  const applyDesignPreset = (presetId: string) => {
+    const next = applyDesignPresetToCreative(draft, presetId);
+    update({
+      creative: next.creative,
+      designSystemConfig: {
+        ...(draft.designSystemConfig ?? getDefaultDesignSystemConfig()),
+        defaultPresetId: presetId,
+      },
+    });
+  };
+
+  const parseTagRuleLines = (input: string) =>
+    input
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [tag, presetId] = line.split("=>").map((part) => part.trim());
+        return { tag, presetId };
+      })
+      .filter((row) => row.tag && row.presetId);
+
+  const parseMetafieldRuleLines = (input: string) =>
+    input
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [metaKey, presetId] = line.split("=>").map((part) => part.trim());
+        const [namespace, key] = (metaKey ?? "").split(".");
+        return { namespace: namespace?.trim(), key: key?.trim(), presetId };
+      })
+      .filter((row) => row.namespace && row.key && row.presetId) as { namespace: string; key: string; presetId: string }[];
+
+  const parseMetaobjectRuleLines = (input: string) =>
+    input
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [lhs, presetId] = line.split("=>").map((part) => part.trim());
+        const [typePart, valuePart] = (lhs ?? "").split(":").map((part) => part.trim());
+        const [field, value] = (valuePart ?? "").split("=").map((part) => part.trim());
+        return {
+          type: typePart,
+          field: field || undefined,
+          value: value || undefined,
+          presetId,
+        };
+      })
+      .filter((row) => row.type && row.presetId);
+
+  const setCustomCss = (rawCss: string) => {
+    updateStyleConfig({
+      customCssRaw: rawCss,
+      customCssScoped: compileScopedCss(rawCss, draft.id, draft.styleConfig?.safeMode ?? "balanced"),
+    });
+  };
+
   const handleSave = () => {
     const name = draft.name.trim() || draft.creative.text.split("\n")[0] || "Untitled";
     onSave({ ...draft, name });
@@ -144,6 +289,12 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
   };
 
   const tagsValue = (draft.tags ?? []).join(", ");
+  const dsConfig = draft.designSystemConfig ?? getDefaultDesignSystemConfig();
+  const tagRuleText = dsConfig.productTagRules.map((rule) => `${rule.tag} => ${rule.presetId}`).join("\n");
+  const metafieldRuleText = dsConfig.metafieldRules.map((rule) => `${rule.namespace}.${rule.key} => ${rule.presetId}`).join("\n");
+  const metaobjectRuleText = dsConfig.metaobjectRules
+    .map((rule) => `${rule.type}${rule.field ? `:${rule.field}${rule.value ? `=${rule.value}` : ""}` : ""} => ${rule.presetId}`)
+    .join("\n");
   const rootGroup = draft.ruleGroups.find((g) => g.parentGroupId === null) ?? draft.ruleGroups[0];
   const isAnyCondition = rootGroup?.operator === "OR";
 
@@ -283,6 +434,119 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
             </fieldset>
 
             <fieldset className="editor-section">
+              <legend>Design System</legend>
+
+              <div className="design-system-grid">
+                <label className="field-label">
+                  Design mode
+                  <select
+                    value={dsConfig.mode}
+                    onChange={(e) => updateDesignSystemConfig({ mode: e.target.value as "default" | "asset" | "custom" })}
+                  >
+                    <option value="default">Default system</option>
+                    <option value="asset">Design asset</option>
+                    <option value="custom">Custom design</option>
+                  </select>
+                </label>
+
+                <label className="field-label">
+                  Default preset
+                  <div className="design-preset-row">
+                    <select
+                      value={dsConfig.defaultPresetId}
+                      onChange={(e) => updateDesignSystemConfig({ defaultPresetId: e.target.value })}
+                    >
+                      {DESIGN_PRESETS.map((preset) => (
+                        <option key={preset.id} value={preset.id}>{preset.label}</option>
+                      ))}
+                    </select>
+                    <button className="ghost-btn" onClick={() => applyDesignPreset(dsConfig.defaultPresetId)}>Apply</button>
+                  </div>
+                </label>
+              </div>
+
+              {dsConfig.mode === "asset" && (
+                <label className="field-label">
+                  Design asset pack
+                  <div className="design-preset-row">
+                    <select
+                      value={dsConfig.assetId ?? ""}
+                      onChange={(e) => {
+                        const asset = DESIGN_ASSETS.find((a) => a.id === e.target.value) ?? null;
+                        updateDesignSystemConfig({
+                          assetId: asset?.id ?? null,
+                          defaultPresetId: asset?.defaultPresetId ?? dsConfig.defaultPresetId,
+                        });
+                      }}
+                    >
+                      {DESIGN_ASSETS.map((asset) => (
+                        <option key={asset.id} value={asset.id}>{asset.label}</option>
+                      ))}
+                    </select>
+                    <button
+                      className="ghost-btn"
+                      onClick={() => {
+                        const asset = DESIGN_ASSETS.find((a) => a.id === dsConfig.assetId);
+                        if (asset) applyDesignPreset(asset.defaultPresetId);
+                      }}
+                    >
+                      Use asset
+                    </button>
+                  </div>
+                </label>
+              )}
+
+              {dsConfig.mode === "custom" && (
+                <label className="field-label">
+                  Custom design label
+                  <input
+                    type="text"
+                    value={dsConfig.customDesignLabel ?? ""}
+                    placeholder="e.g. Hyper Seasonal Capsule"
+                    onChange={(e) => updateDesignSystemConfig({ customDesignLabel: e.target.value || null })}
+                  />
+                </label>
+              )}
+
+              <p className="design-system-note">
+                Set default standards, then override by product tags or Shopify data models for automated flair theming.
+              </p>
+
+              <label className="field-label">
+                Product tag rules
+                <textarea
+                  className="field-textarea"
+                  rows={3}
+                  value={tagRuleText}
+                  onChange={(e) => updateDesignSystemConfig({ productTagRules: parseTagRuleLines(e.target.value) })}
+                  placeholder={`sale => gerber-sale-red\nclearance => gerber-sale-red`}
+                />
+              </label>
+
+              <label className="field-label">
+                Metafield rules
+                <textarea
+                  className="field-textarea"
+                  rows={3}
+                  value={metafieldRuleText}
+                  onChange={(e) => updateDesignSystemConfig({ metafieldRules: parseMetafieldRuleLines(e.target.value) })}
+                  placeholder={`custom.flair_theme => gerber-core-navy\ncustom.badge_theme => gerber-soft-green`}
+                />
+              </label>
+
+              <label className="field-label">
+                Metaobject rules
+                <textarea
+                  className="field-textarea"
+                  rows={3}
+                  value={metaobjectRuleText}
+                  onChange={(e) => updateDesignSystemConfig({ metaobjectRules: parseMetaobjectRuleLines(e.target.value) })}
+                  placeholder={`flair_theme:variant=default => gerber-core-navy\nflair_theme:variant=sale => gerber-sale-red`}
+                />
+              </label>
+            </fieldset>
+
+            <fieldset className="editor-section">
               <legend>Style</legend>
               <div className="color-presets">
                 <span className="field-label">Style preset</span>
@@ -419,6 +683,36 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   update({ ruleGroups: groups, ruleConditions: conditions })
                 }
               />
+
+              <div className="quick-target-row">
+                <span className="quick-target-label">Quick add:</span>
+                {[
+                  { label: "+ Product tag", field: "product_tag" as const, value: "" },
+                  { label: "+ Metafield", field: "metafield_value" as const, value: "" },
+                  { label: "+ Metaobject", field: "metaobject_handle" as const, value: "" },
+                  { label: "+ Collection", field: "collection_id" as const, value: "" },
+                  { label: "+ Compare-at price", field: "compare_at_price" as const, value: "" },
+                ].map(({ label, field, value }) => (
+                  <button
+                    key={field}
+                    className="css-snippet-btn"
+                    onClick={() => {
+                      if (!rootGroup) return;
+                      const newCond: RuleCondition = {
+                        id: generateId(),
+                        groupId: rootGroup.id,
+                        field,
+                        comparator: field === "compare_at_price" ? "gt" : field === "metafield_value" ? "eq" : "contains",
+                        value,
+                        sortOrder: draft.ruleConditions.length,
+                      };
+                      update({ ruleConditions: [...draft.ruleConditions, newCond] });
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </fieldset>
 
             <fieldset className="editor-section">
@@ -692,15 +986,30 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
               <legend>Custom CSS</legend>
 
               <div className="css-safe-mode-row">
-                <label>Safety mode</label>
+                <label htmlFor="css-safe-mode-select">Safety mode</label>
                 <select
+                  id="css-safe-mode-select"
                   value={draft.styleConfig?.safeMode ?? "balanced"}
-                  onChange={(e) => updateStyleConfig({ safeMode: e.target.value as "strict" | "balanced" | "off" })}
+                  onChange={(e) => {
+                    const nextMode = e.target.value as "strict" | "balanced" | "off";
+                    updateStyleConfig({
+                      safeMode: nextMode,
+                      customCssScoped: compileScopedCss(draft.styleConfig?.customCssRaw ?? "", draft.id, nextMode),
+                    });
+                  }}
                 >
                   <option value="strict">Strict (most restrictive)</option>
                   <option value="balanced">Balanced</option>
                   <option value="off">Off (advanced)</option>
                 </select>
+              </div>
+
+              <div className="css-status-box">
+                <div className="css-status-chip">
+                  {(draft.styleConfig?.customCssRaw ?? "").trim() ? "Custom CSS active" : "No custom CSS"}
+                </div>
+                <div className="css-status-meta">Scope target: .flair-campaign-{draft.id}</div>
+                <div className="css-status-meta">Preview applies scoped CSS in real time.</div>
               </div>
 
               <div className="css-code-box">
@@ -713,12 +1022,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   className="css-code-textarea"
                   rows={12}
                   value={draft.styleConfig?.customCssRaw ?? ""}
-                  onChange={(e) =>
-                    updateStyleConfig({
-                      customCssRaw: e.target.value,
-                      customCssScoped: e.target.value,
-                    })
-                  }
+                  onChange={(e) => setCustomCss(e.target.value)}
                   placeholder={`.flair-campaign {\n  border-radius: 12px;\n  box-shadow: 0 6px 18px rgba(17, 37, 63, 0.18);\n}\n\n.flair-campaign .headline {\n  letter-spacing: 0.08em;\n}`}
                   spellCheck={false}
                 />
@@ -726,10 +1030,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   <button
                     className="css-snippet-btn"
                     onClick={() =>
-                      updateStyleConfig({
-                        customCssRaw: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  border-radius: 14px;\n}`.trim(),
-                        customCssScoped: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  border-radius: 14px;\n}`.trim(),
-                      })
+                      setCustomCss(`${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  border-radius: 14px;\n}`.trim())
                     }
                   >
                     + Rounded corners
@@ -737,10 +1038,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   <button
                     className="css-snippet-btn"
                     onClick={() =>
-                      updateStyleConfig({
-                        customCssRaw: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}`.trim(),
-                        customCssScoped: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}`.trim(),
-                      })
+                      setCustomCss(`${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}`.trim())
                     }
                   >
                     + Bold headline
@@ -748,17 +1046,14 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   <button
                     className="css-snippet-btn"
                     onClick={() =>
-                      updateStyleConfig({
-                        customCssRaw: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  animation: flair-pulse 1.8s ease-in-out infinite;\n}\n@keyframes flair-pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.65; }\n}`.trim(),
-                        customCssScoped: `${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  animation: flair-pulse 1.8s ease-in-out infinite;\n}\n@keyframes flair-pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.65; }\n}`.trim(),
-                      })
+                      setCustomCss(`${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  animation: flair-pulse 1.8s ease-in-out infinite;\n}\n@keyframes flair-pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.65; }\n}`.trim())
                     }
                   >
                     + Pulse animation
                   </button>
                   <button
                     className="css-snippet-btn css-snippet-btn--clear"
-                    onClick={() => updateStyleConfig({ customCssRaw: "", customCssScoped: "" })}
+                    onClick={() => setCustomCss("")}
                   >
                     Clear
                   </button>

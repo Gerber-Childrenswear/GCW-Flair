@@ -71,6 +71,35 @@
   outline-offset: 1px;
 }
 
+/* Search with clear button */
+.campaign-search-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.campaign-search-wrap .campaign-search {
+  padding-right: 32px;
+}
+
+.campaign-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.campaign-search-clear:hover {
+  color: var(--text-primary);
+}
+
 /* ── Bulk Actions ────────────────────────── */
 .bulk-actions-bar {
   display: flex;
@@ -141,8 +170,30 @@
 }
 
 .campaign-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.campaign-list-view .campaign-card {
   display: grid;
-  gap: var(--space-3);
+  grid-template-columns: 120px 1fr auto;
+  grid-template-rows: auto;
+  border-radius: var(--radius-sm);
+}
+
+.campaign-list-view .campaign-card-preview {
+  min-height: 56px;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.campaign-list-view .campaign-card-name {
+  padding: 10px 16px 4px;
+  font-size: 14px;
+}
+
+.campaign-list-view .campaign-card-meta {
+  padding: 4px 16px 10px;
 }
 
 /* ── Campaign Card ───────────────────────── */
@@ -283,9 +334,44 @@
   cursor: pointer;
 }
 
+.layout-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.layout-toggle .layout-btn:first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.layout-toggle .layout-btn:last-child {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border-left: 0;
+}
+
 .layout-btn.active {
   background: #e1e6ee;
   color: var(--text-primary);
+}
+
+/* Quick target row in Conditions section */
+.quick-target-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.quick-target-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  margin-right: 2px;
 }
 
 .remove-btn {
@@ -692,6 +778,57 @@
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
+}
+
+.design-system-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.design-preset-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.design-preset-row select {
+  flex: 1;
+}
+
+.design-system-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.css-status-box {
+  border: 1px solid #c9d8f2;
+  background: #f4f8ff;
+  border-radius: 8px;
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.css-status-chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #18407d;
+  background: #e6efff;
+  border: 1px solid #b8ccf6;
+}
+
+.css-status-meta {
+  font-size: 12px;
+  color: #27446c;
 }
 
 /* ── Preview Panel ────────────────────────── */

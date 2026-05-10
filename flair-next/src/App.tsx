@@ -12,6 +12,7 @@ import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import AutomationCenter from "./components/AutomationCenter";
 import CountdownManager from "./components/CountdownManager";
 import { generateId, mockBadges, mockBanners } from "./data/mock-campaigns";
+import { getDefaultDesignSystemConfig, getDesignPresetById } from "./data/design-system";
 import { createCampaign, fetchCampaigns, updateCampaign } from "./api/client";
 import type { Campaign } from "./types/campaign";
 
@@ -24,6 +25,8 @@ function createCampaignFromTemplate(type: "badge" | "banner", template: Template
   const now = new Date().toISOString();
   const id = generateId();
   const rootGroupId = `rg_root_${id}`;
+  const designSystemConfig = getDefaultDesignSystemConfig();
+  const defaultPreset = getDesignPresetById(designSystemConfig.defaultPresetId);
 
   return {
     id,
@@ -32,17 +35,17 @@ function createCampaignFromTemplate(type: "badge" | "banner", template: Template
     name: template.name,
     creative: {
       text: template.defaultCreative.text ?? "",
-      backgroundColor: template.defaultCreative.backgroundColor,
-      textColor: template.defaultCreative.textColor,
-      borderColor: template.defaultCreative.borderColor,
-      stylePreset: template.defaultCreative.stylePreset,
+      backgroundColor: template.defaultCreative.backgroundColor ?? defaultPreset?.creative.backgroundColor ?? "#1a3a5c",
+      textColor: template.defaultCreative.textColor ?? defaultPreset?.creative.textColor ?? "#ffffff",
+      borderColor: template.defaultCreative.borderColor ?? defaultPreset?.creative.borderColor ?? "#1a3a5c",
+      stylePreset: template.defaultCreative.stylePreset ?? defaultPreset?.creative.stylePreset ?? "solid-dark",
       contentMode: "text",
-      textSize: "14px",
-      fontWeight: "700",
-      paddingPreset: "normal",
-      letterSpacingPreset: "normal",
-      borderWidthPreset: "thin",
-      shadowPreset: "none",
+      textSize: defaultPreset?.creative.textSize ?? "14px",
+      fontWeight: defaultPreset?.creative.fontWeight ?? "700",
+      paddingPreset: defaultPreset?.creative.paddingPreset ?? "normal",
+      letterSpacingPreset: defaultPreset?.creative.letterSpacingPreset ?? "normal",
+      borderWidthPreset: defaultPreset?.creative.borderWidthPreset ?? "thin",
+      shadowPreset: defaultPreset?.creative.shadowPreset ?? "none",
       cornerPreset: type === "banner" ? "square" : "rounded",
     },
     ruleGroups: [
@@ -69,6 +72,7 @@ function createCampaignFromTemplate(type: "badge" | "banner", template: Template
       customCssScoped: "",
       safeMode: "balanced",
     },
+    designSystemConfig,
     createdAt: now,
     updatedAt: now,
   };

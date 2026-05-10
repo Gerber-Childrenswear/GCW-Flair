@@ -185,6 +185,30 @@
 .rule-input:focus { border-color: #8c9196; box-shadow: 0 0 0 2px rgba(184,198,219,0.45); }
 .rule-input--value {}
 
+/* Metafield split input (key | value) */
+.rule-metafield-inputs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  grid-column: span 1;
+}
+
+.rule-input--mf-key {
+  flex: 2;
+}
+
+.rule-input--mf-val {
+  flex: 1;
+}
+
+.rule-mf-sep {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex: 0 0 auto;
+  padding: 0 2px;
+}
+
 .rule-condition-static {
   min-height: 32px;
   display: inline-flex;

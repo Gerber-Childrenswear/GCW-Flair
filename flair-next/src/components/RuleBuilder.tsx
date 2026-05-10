@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { v4 as uuid } from "uuid";
 import type { RuleGroup, RuleCondition, ConditionField, Comparator } from "../types/campaign";
-import { FIELD_LABELS, COMPARATOR_LABELS, getComparatorsForField, BOOLEAN_FIELDS } from "../types/campaign";
+import { FIELD_LABELS, COMPARATOR_LABELS, getComparatorsForField, BOOLEAN_FIELDS, METAFIELD_FIELDS, METAOBJECT_FIELDS } from "../types/campaign";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Props = {
@@ -15,6 +15,7 @@ const ALL_FIELDS: ConditionField[] = [
   "price", "compare_at_price", "inventory",
   "variant_option", "customer_tag", "customer_logged_in",
   "page_type", "placement_slot",
+  "metafield_value", "metaobject_handle",
 ];
 
 function getValuePlaceholder(field: ConditionField): string {
@@ -23,7 +24,7 @@ function getValuePlaceholder(field: ConditionField): string {
       return "product, collection, search";
     case "product_tag":
     case "customer_tag":
-      return "tag value";
+      return "tag value (e.g. sale, clearance)";
     case "collection_id":
       return "collection handle or id";
     case "price":
@@ -34,6 +35,10 @@ function getValuePlaceholder(field: ConditionField): string {
       return "Size = 2T";
     case "placement_slot":
       return "pdp, collection, cart";
+    case "metafield_value":
+      return "namespace.key | value (e.g. custom.sale_badge | true)";
+    case "metaobject_handle":
+      return "metaobject type handle (e.g. flair_theme)";
     default:
       return "Enter value";
   }
@@ -159,7 +164,13 @@ type ConditionRowProps = {
 function ConditionRow({ condition, onUpdate, onRemove }: ConditionRowProps) {
   const comparators = getComparatorsForField(condition.field);
   const isBoolean = BOOLEAN_FIELDS.includes(condition.field);
+  const isMetafield = METAFIELD_FIELDS.includes(condition.field);
+  const isMetaobject = METAOBJECT_FIELDS.includes(condition.field);
   const showValue = !isBoolean && condition.comparator !== "exists" && condition.comparator !== "not_exists";
+
+  // Metafield value is stored as "namespace.key|value"
+  const metafieldKey = isMetafield ? (condition.value.split("|")[0] ?? "").trim() : "";
+  const metafieldVal = isMetafield ? (condition.value.split("|")[1] ?? "").trim() : "";
 
   const handleFieldChange = (field: ConditionField) => {
     const newComparators = getComparatorsForField(field);
@@ -193,7 +204,37 @@ function ConditionRow({ condition, onUpdate, onRemove }: ConditionRowProps) {
         ))}
       </select>
 
-      {showValue && (
+      {showValue && isMetafield && (
+        <div className="rule-metafield-inputs">
+          <input
+            type="text"
+            className="rule-input rule-input--mf-key"
+            placeholder="namespace.key (e.g. custom.sale_badge)"
+            value={metafieldKey}
+            onChange={(e) => onUpdate({ value: `${e.target.value}|${metafieldVal}` })}
+          />
+          <span className="rule-mf-sep">=</span>
+          <input
+            type="text"
+            className="rule-input rule-input--mf-val"
+            placeholder="value (e.g. true)"
+            value={metafieldVal}
+            onChange={(e) => onUpdate({ value: `${metafieldKey}|${e.target.value}` })}
+          />
+        </div>
+      )}
+
+      {showValue && isMetaobject && (
+        <input
+          type="text"
+          className="rule-input rule-input--value"
+          placeholder="metaobject type handle (e.g. flair_theme)"
+          value={condition.value}
+          onChange={(e) => onUpdate({ value: e.target.value })}
+        />
+      )}
+
+      {showValue && !isMetafield && !isMetaobject && (
         <input
           type={condition.field === "price" || condition.field === "compare_at_price" || condition.field === "inventory" ? "number" : "text"}
           className="rule-input rule-input--value"

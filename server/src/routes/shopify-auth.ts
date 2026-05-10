@@ -346,10 +346,9 @@ router.get("/callback", async (req, res) => {
       }
     })();
 
-    const redirect = new URL(env.frontendUrl);
-    redirect.searchParams.set("installed", "1");
-    redirect.searchParams.set("shop", shop);
-    res.redirect(redirect.toString());
+    // Send users to the embedded app entry inside Shopify Admin after install.
+    const embeddedAdminUrl = `https://${shop}/admin/apps/${env.apiKey}`;
+    res.redirect(embeddedAdminUrl);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     res.status(500).json({ error: "Unexpected callback error.", details: message });

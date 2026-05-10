@@ -80,8 +80,17 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onBulkDel
               className={`layout-btn ${layout === "grid" ? "active" : ""}`}
               onClick={() => setLayout("grid")}
               aria-label="Grid layout"
+              title="Grid view"
             >
-              ▦ Layouts
+              ▦
+            </button>
+            <button
+              className={`layout-btn ${layout === "list" ? "active" : ""}`}
+              onClick={() => setLayout("list")}
+              aria-label="List layout"
+              title="List view"
+            >
+              ☰
             </button>
           </div>
           <button className="primary-btn" onClick={onAdd}>
@@ -102,13 +111,25 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onBulkDel
             </button>
           ))}
         </div>
-        <input
-          className="campaign-search"
-          placeholder={`Search ${label.toLowerCase()}...`}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label={`Search ${label.toLowerCase()}`}
-        />
+        <div className="campaign-search-wrap">
+          <input
+            className="campaign-search"
+            placeholder={`Search ${label.toLowerCase()}...`}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label={`Search ${label.toLowerCase()}`}
+          />
+          {search && (
+            <button
+              className="campaign-search-clear"
+              onClick={() => setSearch("")}
+              aria-label="Clear search"
+              title="Clear search"
+            >
+              ×
+            </button>
+          )}
+        </div>
       </div>
 
       {selectedIds.size > 0 && (

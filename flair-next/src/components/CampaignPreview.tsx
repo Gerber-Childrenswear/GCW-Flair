@@ -1,13 +1,15 @@
 import type { Campaign } from "../types/campaign";
+import { resolveCampaignCreative } from "../data/design-system";
 
 type Props = {
   campaign: Campaign;
 };
 
 export default function CampaignPreview({ campaign }: Props) {
-  const lines = campaign.creative.text.split("\n");
+  const resolvedCreative = resolveCampaignCreative(campaign);
+  const lines = resolvedCreative.text.split("\n");
   const isBanner = campaign.type === "banner";
-  const customCss = campaign.styleConfig?.customCssRaw?.trim() ?? "";
+  const customCss = campaign.styleConfig?.customCssScoped?.trim() ?? campaign.styleConfig?.customCssRaw?.trim() ?? "";
   const countdownLine = campaign.countdown?.enabled && campaign.countdown.endsAt
     ? `${campaign.countdown.label}: ${new Date(campaign.countdown.endsAt).toLocaleString()}`
     : null;
@@ -44,13 +46,13 @@ export default function CampaignPreview({ campaign }: Props) {
     pill: "999px",
   } as const;
 
-  const fontSize = campaign.creative.textSize ?? "14px";
-  const fontWeight = campaign.creative.fontWeight ?? "700";
-  const padding = paddingMap[campaign.creative.paddingPreset ?? "normal"];
-  const letterSpacing = letterSpacingMap[campaign.creative.letterSpacingPreset ?? "normal"];
-  const borderWidth = borderWidthMap[campaign.creative.borderWidthPreset ?? "thin"];
-  const boxShadow = shadowMap[campaign.creative.shadowPreset ?? "none"];
-  const borderRadius = radiusMap[campaign.creative.cornerPreset ?? (isBanner ? "square" : "rounded")];
+  const fontSize = resolvedCreative.textSize ?? "14px";
+  const fontWeight = resolvedCreative.fontWeight ?? "700";
+  const padding = paddingMap[resolvedCreative.paddingPreset ?? "normal"];
+  const letterSpacing = letterSpacingMap[resolvedCreative.letterSpacingPreset ?? "normal"];
+  const borderWidth = borderWidthMap[resolvedCreative.borderWidthPreset ?? "thin"];
+  const boxShadow = shadowMap[resolvedCreative.shadowPreset ?? "none"];
+  const borderRadius = radiusMap[resolvedCreative.cornerPreset ?? (isBanner ? "square" : "rounded")];
 
   return (
     <div className="preview-wrapper">
@@ -61,9 +63,9 @@ export default function CampaignPreview({ campaign }: Props) {
           <div
             className={`preview-creative flair-campaign flair-campaign-${campaign.id} ${isBanner ? "preview-creative--banner" : "preview-creative--badge"}`}
             style={{
-              backgroundColor: campaign.creative.backgroundColor,
-              color: campaign.creative.textColor,
-              borderColor: campaign.creative.borderColor,
+              backgroundColor: resolvedCreative.backgroundColor,
+              color: resolvedCreative.textColor,
+              borderColor: resolvedCreative.borderColor,
               borderWidth,
               borderStyle: "solid",
               borderRadius,
@@ -95,9 +97,9 @@ export default function CampaignPreview({ campaign }: Props) {
               <div
                 className={`preview-creative preview-creative--badge preview-creative--mini flair-campaign flair-campaign-${campaign.id}`}
                 style={{
-                  backgroundColor: campaign.creative.backgroundColor,
-                  color: campaign.creative.textColor,
-                  borderColor: campaign.creative.borderColor,
+                  backgroundColor: resolvedCreative.backgroundColor,
+                  color: resolvedCreative.textColor,
+                  borderColor: resolvedCreative.borderColor,
                   borderWidth,
                   borderStyle: "solid",
                   borderRadius,

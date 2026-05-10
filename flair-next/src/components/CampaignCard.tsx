@@ -1,4 +1,5 @@
 import type { Campaign } from "../types/campaign";
+import { resolveCampaignCreative } from "../data/design-system";
 
 type Props = {
   campaign: Campaign;
@@ -16,7 +17,8 @@ const statusDot: Record<string, string> = {
 };
 
 export default function CampaignCard({ campaign, onEdit, isSelected, onSelect }: Props) {
-  const lines = campaign.creative.text.split("\n");
+  const resolvedCreative = resolveCampaignCreative(campaign);
+  const lines = resolvedCreative.text.split("\n");
   const condCount = campaign.ruleConditions.length;
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
@@ -50,9 +52,9 @@ export default function CampaignCard({ campaign, onEdit, isSelected, onSelect }:
       <div
         className="campaign-card-preview"
         style={{
-          backgroundColor: campaign.creative.backgroundColor,
-          color: campaign.creative.textColor,
-          borderColor: campaign.creative.borderColor,
+          backgroundColor: resolvedCreative.backgroundColor,
+          color: resolvedCreative.textColor,
+          borderColor: resolvedCreative.borderColor,
         }}
       >
         {lines.map((line, i) => (

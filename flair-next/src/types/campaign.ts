@@ -24,7 +24,9 @@ export type ConditionField =
   | "customer_tag"
   | "customer_logged_in"
   | "page_type"
-  | "placement_slot";
+  | "placement_slot"
+  | "metafield_value"
+  | "metaobject_handle";
 
 export type Comparator =
   | "eq" | "neq"
@@ -103,6 +105,36 @@ export type StyleConfig = {
   customCssRaw: string;
   customCssScoped: string;
   safeMode: "strict" | "balanced" | "off";
+};
+
+export type DesignSystemMode = "default" | "asset" | "custom";
+
+export type ProductTagPresetRule = {
+  tag: string;
+  presetId: string;
+};
+
+export type MetafieldPresetRule = {
+  namespace: string;
+  key: string;
+  presetId: string;
+};
+
+export type MetaobjectPresetRule = {
+  type: string;
+  field?: string;
+  value?: string;
+  presetId: string;
+};
+
+export type DesignSystemConfig = {
+  mode: DesignSystemMode;
+  defaultPresetId: string;
+  assetId: string | null;
+  customDesignLabel: string | null;
+  productTagRules: ProductTagPresetRule[];
+  metafieldRules: MetafieldPresetRule[];
+  metaobjectRules: MetaobjectPresetRule[];
 };
 
 // ── Variant Targeting ─────────────────────────────────────────────────────────
@@ -213,6 +245,7 @@ export type Campaign = {
   linkUrl?: string | null;
   tags?: string[];
   styleConfig?: StyleConfig;
+  designSystemConfig?: DesignSystemConfig;
   // New features
   variantTargets?: VariantTarget[];
   abTestConfig?: ABTestConfig;
@@ -239,6 +272,8 @@ export const FIELD_LABELS: Record<ConditionField, string> = {
   customer_logged_in:"Customer Logged In",
   page_type:         "Page Type",
   placement_slot:    "Placement Slot",
+  metafield_value:   "Metafield Value",
+  metaobject_handle: "Metaobject Handle",
 };
 
 export const COMPARATOR_LABELS: Record<Comparator, string> = {
@@ -260,10 +295,14 @@ export const COMPARATOR_LABELS: Record<Comparator, string> = {
 export const NUMERIC_FIELDS: ConditionField[] = ["price", "compare_at_price", "inventory"];
 export const BOOLEAN_FIELDS: ConditionField[] = ["customer_logged_in"];
 export const ARRAY_FIELDS: ConditionField[]  = ["product_tag", "collection_id", "customer_tag"];
+export const METAFIELD_FIELDS: ConditionField[] = ["metafield_value"];
+export const METAOBJECT_FIELDS: ConditionField[] = ["metaobject_handle"];
 
 export function getComparatorsForField(field: ConditionField): Comparator[] {
   if (BOOLEAN_FIELDS.includes(field)) return ["eq"];
   if (NUMERIC_FIELDS.includes(field)) return ["gt", "gte", "lt", "lte", "eq", "neq"];
   if (ARRAY_FIELDS.includes(field))   return ["contains", "not_contains", "in", "not_in"];
+  if (METAFIELD_FIELDS.includes(field)) return ["eq", "neq", "contains", "exists", "not_exists"];
+  if (METAOBJECT_FIELDS.includes(field)) return ["eq", "neq", "exists", "not_exists"];
   return ["eq", "neq", "contains", "not_contains"];
 }
