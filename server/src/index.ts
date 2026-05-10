@@ -19,7 +19,6 @@ initCampaignStore();
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 const frontendUrl = process.env.FRONTEND_URL;
-const defaultShop = process.env.DEFAULT_SHOP ?? "gcw-dev.myshopify.com";
 const allowedOrigins = ["http://localhost:5173", "http://localhost:5174", frontendUrl].filter(
   (origin): origin is string => Boolean(origin),
 );
@@ -65,16 +64,7 @@ app.get("/health/config", (_req, res) => {
 });
 
 if (hasStaticBuild) {
-  app.get("/", (req, res) => {
-    const shop = String(req.query.shop ?? "").trim();
-
-    // If someone opens the app root outside Shopify embedded context,
-    // force the OAuth install flow on the target development shop.
-    if (!shop) {
-      res.redirect(`/api/shopify/install?shop=${encodeURIComponent(defaultShop)}`);
-      return;
-    }
-
+  app.get("/", (_req, res) => {
     res.sendFile(staticIndex);
   });
 
@@ -99,9 +89,9 @@ if (hasStaticBuild) {
       .type("html")
       .send(`<!doctype html>
 <html>
-  <head><meta charset="utf-8" /><title>Flair — Shopify App</title></head>
+  <head><meta charset="utf-8" /><title>GCW-Flair</title></head>
   <body style="font-family: Arial, sans-serif; padding: 24px; line-height: 1.5;">
-    <h1>Flair — Shopify App</h1>
+    <h1>GCW-Flair - Shopify App</h1>
     <p>${installed ? "Shopify app installation callback received successfully." : "Use the install link below to start Shopify OAuth."}</p>
     <p><a href="${installUrl}">Install on ${shop}</a></p>
     <p><a href="/health">Health</a> | <a href="/health/config">Config</a></p>
@@ -117,7 +107,7 @@ app.use((_req, res) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-    console.log(`🚀 GCW Flair server running at http://localhost:${PORT}`);
+    console.log(`🚀 GCW-Flair server running at http://localhost:${PORT}`);
   console.log(`   Campaigns API → http://localhost:${PORT}/api/campaigns`);
   console.log(`   Preview API   → http://localhost:${PORT}/api/preview/evaluate`);
   console.log(`   Static UI     → ${hasStaticBuild ? staticIndex : "not detected (dev mode)"}`);

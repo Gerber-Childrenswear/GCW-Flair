@@ -1,15 +1,15 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "59ca78536b42e9e9018379ed5ca299a3"
-name = "GCW Product Manager"
-application_url = "https://wells-labels-ace-mustang.trycloudflare.com"
+client_id = "eddcc50cfd2993fb148463092211a08a"
+name = "GCW-Flair"
+application_url = "https://starsmerchant-particularly-initiatives-consolidation.trycloudflare.com"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = false
 
 [webhooks]
-api_version = "2026-04"
+api_version = "2026-07"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
@@ -18,6 +18,4 @@ optional_scopes = [ ]
 use_legacy_install_flow = true
 
 [auth]
-redirect_urls = [
-  "https://wells-labels-ace-mustang.trycloudflare.com/api/shopify/callback"
-]
+redirect_urls = [ "https://starsmerchant-particularly-initiatives-consolidation.trycloudflare.com/api/shopify/callback" ]

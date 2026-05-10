@@ -22,14 +22,32 @@ const quickActions: QuickAction[] = [
   },
 ];
 
-export default function QuickActions() {
+type QuickActionsProps = {
+  onNavigate: (view: string) => void;
+};
+
+export default function QuickActions({ onNavigate }: QuickActionsProps) {
+  const handleAction = (title: string) => {
+    if (title === "Theme status") {
+      onNavigate("Settings");
+      return;
+    }
+    if (title === "Automation health") {
+      onNavigate("Automations");
+      return;
+    }
+    if (title === "Template library") {
+      onNavigate("Templates");
+    }
+  };
+
   return (
     <section className="quick-grid">
       {quickActions.map((item) => (
         <article key={item.title} className="panel quick-panel">
           <div className="panel-head">
             <h3>{item.title}</h3>
-            <button className="ghost-btn">{item.cta}</button>
+            <button className="ghost-btn" onClick={() => handleAction(item.title)}>{item.cta}</button>
           </div>
           <p>{item.subtitle}</p>
         </article>

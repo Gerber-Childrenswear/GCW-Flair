@@ -240,7 +240,7 @@ export default function App() {
           <main className="content">
             <section className="workspace-head">
               <div>
-                <p className="workspace-kicker">Flair</p>
+                <p className="workspace-kicker">GCW-Flair</p>
                 <h1>Campaign Builder</h1>
               </div>
               <div className="workspace-head-actions">
@@ -269,7 +269,7 @@ export default function App() {
         <main className="content">
           <section className="workspace-head">
             <div>
-              <p className="workspace-kicker">Flair</p>
+              <p className="workspace-kicker">GCW-Flair</p>
               <h1>{activeViewLabel}</h1>
             </div>
             <div className="workspace-head-actions">
@@ -283,8 +283,8 @@ export default function App() {
           {activeView === "Dashboard" && (
             <>
               <StatCards campaigns={allCampaigns} onViewSection={handleNavigate} />
-              <QuickActions />
-              <HelpCenter />
+              <QuickActions onNavigate={handleNavigate} />
+              <HelpCenter onNavigate={handleNavigate} />
             </>
           )}
 
@@ -335,7 +335,7 @@ export default function App() {
             <CountdownManager campaigns={[...badges, ...banners]} />
           )}
 
-          {activeView === "Settings" && <Settings />}
+          {activeView === "Settings" && <Settings onNavigate={handleNavigate} />}
         </main>
       </div>
     </div>

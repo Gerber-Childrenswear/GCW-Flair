@@ -1,4 +1,4 @@
-# FlairBeTrippin
+# GCW-Flair
 Flair app replacement
 
 ## Frontend handoff

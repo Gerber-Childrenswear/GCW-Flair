@@ -1,4 +1,8 @@
-export default function Settings() {
+type SettingsProps = {
+  onNavigate: (view: string) => void;
+};
+
+export default function Settings({ onNavigate }: SettingsProps) {
   return (
     <div className="settings-page">
       <h1>Settings</h1>
@@ -13,7 +17,7 @@ export default function Settings() {
             <div className="settings-info-subtitle">Flair is enabled</div>
           </div>
           <div className="settings-action">
-            <button className="ghost-btn">Disable</button>
+            <button className="ghost-btn" onClick={() => onNavigate("Dashboard")}>Disable</button>
           </div>
         </div>
 
@@ -24,7 +28,7 @@ export default function Settings() {
             <div className="settings-info-subtitle muted">Grow $49</div>
           </div>
           <div className="settings-action">
-            <span className="settings-chevron">›</span>
+            <button className="ghost-btn" onClick={() => onNavigate("Analytics")}>Manage</button>
           </div>
         </div>
 
@@ -35,7 +39,7 @@ export default function Settings() {
             <div className="settings-info-subtitle muted">No additional languages enabled</div>
           </div>
           <div className="settings-action">
-            <span className="settings-chevron">›</span>
+            <button className="ghost-btn" onClick={() => onNavigate("Templates")}>Configure</button>
           </div>
         </div>
 
@@ -46,7 +50,7 @@ export default function Settings() {
             <div className="settings-info-subtitle muted">You're using Flair Gen 3.</div>
           </div>
           <div className="settings-action">
-            <span className="settings-chevron">›</span>
+            <button className="ghost-btn" onClick={() => onNavigate("Automations")}>Details</button>
           </div>
         </div>
       </div>
@@ -61,7 +65,7 @@ export default function Settings() {
             <div className="settings-info-subtitle muted">Configure Flair in your Shopify theme.</div>
           </div>
           <div className="settings-action">
-            <span className="settings-chevron">›</span>
+            <button className="ghost-btn" onClick={() => onNavigate("Dashboard")}>Open</button>
           </div>
         </div>
 
@@ -72,7 +76,7 @@ export default function Settings() {
             <div className="settings-info-subtitle muted">0 triggers configured</div>
           </div>
           <div className="settings-action">
-            <span className="settings-chevron">›</span>
+            <button className="ghost-btn" onClick={() => onNavigate("Automations")}>Edit</button>
           </div>
         </div>
       </div>

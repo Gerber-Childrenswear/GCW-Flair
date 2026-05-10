@@ -11,7 +11,7 @@ Set up your own Cloudflare account and tunnel so you can expose the app safely f
 ## 1. Create your Cloudflare account
 
 1. Go to Cloudflare and create your own account.
-2. Do not use any existing Commerce Shield account unless the team explicitly wants shared ownership.
+2. Do not use any existing account from another project unless the team explicitly wants shared ownership.
 3. If you already have a company-managed Cloudflare account for this app, ask to be added there instead of creating a personal one.
 
 ## 2. Decide which hostname you will use
@@ -46,7 +46,7 @@ This opens a browser and asks you to authorize a zone in your Cloudflare account
 Run:
 
 ```powershell
-cloudflared tunnel create flairbetrippin-dev
+cloudflared tunnel create gcw-flair-dev
 ```
 
 Save the tunnel ID that Cloudflare returns.
@@ -56,7 +56,7 @@ Save the tunnel ID that Cloudflare returns.
 If your hostname is `flair-dev.yourdomain.com`, run:
 
 ```powershell
-cloudflared tunnel route dns flairbetrippin-dev flair-dev.yourdomain.com
+cloudflared tunnel route dns gcw-flair-dev flair-dev.yourdomain.com
 ```
 
 That creates the DNS routing in your Cloudflare zone.
@@ -106,7 +106,7 @@ If backend and frontend ports differ from the tunnel config, update the Cloudfla
 In a separate terminal:
 
 ```powershell
-cloudflared tunnel run flairbetrippin-dev
+cloudflared tunnel run gcw-flair-dev
 ```
 
 If this works, your public hostname should proxy to your local app.

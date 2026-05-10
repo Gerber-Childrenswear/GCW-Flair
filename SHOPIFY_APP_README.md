@@ -1,4 +1,4 @@
-# GCW Product Manager - Shopify App
+# GCW-Flair - Shopify App
 
 Custom campaign management app for Gerber Childrenswear. Built with React, Express, and Shopify CLI.
 
@@ -47,8 +47,8 @@ The Docker build process will:
 ### Deploying to Shopify
 
 The app is already configured with:
-- **Client ID**: 59ca78536b42e9e9018379ed5ca299a3
-- **App URL**: https://wells-labels-ace-mustang.trycloudflare.com (Cloudflare tunnel)
+- **Client ID**: eddcc50cfd2993fb148463092211a08a
+- **App URL**: https://starsmerchant-particularly-initiatives-consolidation.trycloudflare.com (Cloudflare tunnel)
 - **Embedded**: Yes (Shopify admin embedded)
 - **Scopes**: `read_products`, `write_products`, `read_discounts`, `write_discounts`
 
