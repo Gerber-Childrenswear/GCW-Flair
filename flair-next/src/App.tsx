@@ -297,8 +297,7 @@ export default function App() {
             <>
               <StatCards campaigns={allCampaigns} onViewSection={handleNavigate} />
               <QuickActions onNavigate={handleNavigate} />
-              <HelpCenter onNavigate={handleNavigate} />
-            </>
+                          </>
           )}
 
           {activeView === "Badges" && (
@@ -341,3 +340,5 @@ export default function App() {
     </div>
   );
 }
+
+
