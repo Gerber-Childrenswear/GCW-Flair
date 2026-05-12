@@ -1,0 +1,1138 @@
+[
+  {
+    "id": "camp_1",
+    "storeId": "gcw",
+    "name": "SITEWIDE SALE",
+    "type": "badge",
+    "status": "live",
+    "priority": 1,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "SITEWIDE SALE!\nEXTRA 20% OFF IN CART!!\nDiscount applied in cart.",
+      "backgroundColor": "#1a3a5c",
+      "textColor": "#ffffff",
+      "borderColor": "#1a3a5c",
+      "stylePreset": "solid-dark"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_1",
+        "campaignId": "camp_1",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_1_1",
+        "groupId": "rg_root_camp_1",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "sale",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_1_0",
+        "campaignId": "camp_1",
+        "placementId": "pl_pdp_below_price",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      },
+      {
+        "id": "cp_camp_1_1",
+        "campaignId": "camp_1",
+        "placementId": "pl_col_card_top",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_1",
+      "campaignId": "camp_1",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_1",
+      "campaignId": "camp_1",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_2",
+    "storeId": "gcw",
+    "name": "Oops - Upside Down",
+    "type": "badge",
+    "status": "live",
+    "priority": 2,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "Oops for us. Awesome for you!\nPriced extra low!\nWhile quantities last.",
+      "backgroundColor": "#ffffff",
+      "textColor": "#333333",
+      "borderColor": "#e2e5ea",
+      "stylePreset": "outline-light"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_2",
+        "campaignId": "camp_2",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_2_1",
+        "groupId": "rg_root_camp_2",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "upside-down",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_2_0",
+        "campaignId": "camp_2",
+        "placementId": "pl_col_card_top",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_2",
+      "campaignId": "camp_2",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_2",
+      "campaignId": "camp_2",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_3",
+    "storeId": "gcw",
+    "name": "FREE EMBROIDERY",
+    "type": "badge",
+    "status": "live",
+    "priority": 3,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "Create a keepsake.\nEnjoy FREE EMBROIDERY.\nAdditional processing time.",
+      "backgroundColor": "#f0f4e8",
+      "textColor": "#2d4a1a",
+      "borderColor": "#d4e4b8",
+      "stylePreset": "soft-green"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_3",
+        "campaignId": "camp_3",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_3_1",
+        "groupId": "rg_root_camp_3",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "embroidery",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_3_0",
+        "campaignId": "camp_3",
+        "placementId": "pl_pdp_below_title",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_3",
+      "campaignId": "camp_3",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_3",
+      "campaignId": "camp_3",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_4",
+    "storeId": "gcw",
+    "name": "BEST PAJAMA SETS EVER",
+    "type": "badge",
+    "status": "live",
+    "priority": 4,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "BEST PAJAMA SETS EVER\nButtery soft styles.\nMade to sleep and play!",
+      "backgroundColor": "#f5f0eb",
+      "textColor": "#4a3728",
+      "borderColor": "#e0d5c8",
+      "stylePreset": "soft-warm"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_4",
+        "campaignId": "camp_4",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_4_1",
+        "groupId": "rg_root_camp_4",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "pajamas",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_4_0",
+        "campaignId": "camp_4",
+        "placementId": "pl_pdp_below_title",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_4",
+      "campaignId": "camp_4",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_4",
+      "campaignId": "camp_4",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_5",
+    "storeId": "gcw",
+    "name": "SNUGGLY FOOTED PJS",
+    "type": "badge",
+    "status": "live",
+    "priority": 5,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "SNUGGLY-SOFT FOOTED PJS\nTwo-way zipper.\nMade to sleep and play!",
+      "backgroundColor": "#eef4f9",
+      "textColor": "#1a3d5c",
+      "borderColor": "#c8dae8",
+      "stylePreset": "soft-blue"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_5",
+        "campaignId": "camp_5",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_5_1",
+        "groupId": "rg_root_camp_5",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "footed-pjs",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_5_0",
+        "campaignId": "camp_5",
+        "placementId": "pl_col_card_top",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_5",
+      "campaignId": "camp_5",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_5",
+      "campaignId": "camp_5",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_6",
+    "storeId": "gcw",
+    "name": "MADE TO TWIRL DRESSES",
+    "type": "badge",
+    "status": "live",
+    "priority": 6,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "MADE TO TWIRL DRESSES\nLightweight, breathable fabric.\nComfy all day.",
+      "backgroundColor": "#f0eef5",
+      "textColor": "#3a2d5c",
+      "borderColor": "#d8d0e8",
+      "stylePreset": "soft-purple"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_6",
+        "campaignId": "camp_6",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_6_1",
+        "groupId": "rg_root_camp_6",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "dresses",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_6_0",
+        "campaignId": "camp_6",
+        "placementId": "pl_col_card_top",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_6",
+      "campaignId": "camp_6",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_6",
+      "campaignId": "camp_6",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_7",
+    "storeId": "gcw",
+    "name": "LAST CHANCE",
+    "type": "badge",
+    "status": "live",
+    "priority": 0,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "LAST CHANCE!\nOther discounts cannot be applied.",
+      "backgroundColor": "#dc2626",
+      "textColor": "#ffffff",
+      "borderColor": "#dc2626",
+      "stylePreset": "solid-red"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_7",
+        "campaignId": "camp_7",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_7_1",
+        "groupId": "rg_root_camp_7",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "last-chance",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_7_0",
+        "campaignId": "camp_7",
+        "placementId": "pl_pdp_above_atc",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_7",
+      "campaignId": "camp_7",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_7",
+      "campaignId": "camp_7",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_10",
+    "storeId": "gcw",
+    "name": "SITEWIDE SALE Banner",
+    "type": "banner",
+    "status": "live",
+    "priority": 1,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "SITEWIDE SALE!\nEXTRA 20% OFF IN CART!!\nDiscount applied in cart.",
+      "backgroundColor": "#1a3a5c",
+      "textColor": "#ffffff",
+      "borderColor": "#1a3a5c",
+      "stylePreset": "solid-dark"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_10",
+        "campaignId": "camp_10",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_10_1",
+        "groupId": "rg_root_camp_10",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "sale",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_10_0",
+        "campaignId": "camp_10",
+        "placementId": "pl_pdp_below_price",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_10",
+      "campaignId": "camp_10",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_10",
+      "campaignId": "camp_10",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_11",
+    "storeId": "gcw",
+    "name": "Oops Banner",
+    "type": "banner",
+    "status": "live",
+    "priority": 2,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "Oops for us. Awesome for you!\nPriced extra low!\nWhile quantities last.",
+      "backgroundColor": "#d4edda",
+      "textColor": "#155724",
+      "borderColor": "#c3e6cb",
+      "stylePreset": "soft-green"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_11",
+        "campaignId": "camp_11",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_11_1",
+        "groupId": "rg_root_camp_11",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "upside-down",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_11_0",
+        "campaignId": "camp_11",
+        "placementId": "pl_pdp_below_title",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_11",
+      "campaignId": "camp_11",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_11",
+      "campaignId": "camp_11",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_12",
+    "storeId": "gcw",
+    "name": "FREE EMBROIDERY Banner",
+    "type": "banner",
+    "status": "live",
+    "priority": 3,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "Create a keepsake.\nEnjoy FREE EMBROIDERY.\nAdditional processing time.",
+      "backgroundColor": "#f0f4e8",
+      "textColor": "#2d4a1a",
+      "borderColor": "#d4e4b8",
+      "stylePreset": "soft-green"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_12",
+        "campaignId": "camp_12",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_12_1",
+        "groupId": "rg_root_camp_12",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "embroidery",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_12_0",
+        "campaignId": "camp_12",
+        "placementId": "pl_pdp_below_atc",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_12",
+      "campaignId": "camp_12",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_12",
+      "campaignId": "camp_12",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_13",
+    "storeId": "gcw",
+    "name": "SEMI ANNUAL SALE",
+    "type": "banner",
+    "status": "draft",
+    "priority": 5,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "They Grow Fast, SAVE FASTER!\nSEMI ANNUAL SALE\nLimited Time Only.",
+      "backgroundColor": "#fef3c7",
+      "textColor": "#92400e",
+      "borderColor": "#fcd34d",
+      "stylePreset": "solid-yellow"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_13",
+        "campaignId": "camp_13",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      },
+      {
+        "id": "rg_exclude_camp_13",
+        "campaignId": "camp_13",
+        "parentGroupId": "rg_root_camp_13",
+        "operator": "AND",
+        "includeMode": "exclude",
+        "sortOrder": 1
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_13_1",
+        "groupId": "rg_root_camp_13",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "semi-annual",
+        "sortOrder": 0
+      },
+      {
+        "id": "rc_camp_13_2",
+        "groupId": "rg_root_camp_13",
+        "field": "inventory",
+        "comparator": "gt",
+        "value": "0",
+        "sortOrder": 1
+      },
+      {
+        "id": "rc_camp_13_3",
+        "groupId": "rg_exclude_camp_13",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "last-chance",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_13_0",
+        "campaignId": "camp_13",
+        "placementId": "pl_pdp_below_price",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_13",
+      "campaignId": "camp_13",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_13",
+      "campaignId": "camp_13",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": null
+  },
+  {
+    "id": "camp_14",
+    "storeId": "gcw",
+    "name": "CLOCK'S TICKING",
+    "type": "banner",
+    "status": "draft",
+    "priority": 4,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "CLOCK'S TICKING!\nFINAL HOURS TO SHOP SEMI ANNUAL SALE.",
+      "backgroundColor": "#1e3a5f",
+      "textColor": "#ffffff",
+      "borderColor": "#1e3a5f",
+      "stylePreset": "solid-dark"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_14",
+        "campaignId": "camp_14",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_14_1",
+        "groupId": "rg_root_camp_14",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "final-hours",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_14_0",
+        "campaignId": "camp_14",
+        "placementId": "pl_pdp_above_atc",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_14",
+      "campaignId": "camp_14",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_14",
+      "campaignId": "camp_14",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": null
+  },
+  {
+    "id": "camp_15",
+    "storeId": "gcw",
+    "name": "Customers Love This",
+    "type": "banner",
+    "status": "draft",
+    "priority": 6,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "Customers are loving this!\nGrab yours before price goes back up.",
+      "backgroundColor": "#fce4ec",
+      "textColor": "#880e4f",
+      "borderColor": "#f48fb1",
+      "stylePreset": "soft-pink"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_15",
+        "campaignId": "camp_15",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_15_1",
+        "groupId": "rg_root_camp_15",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "trending",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_15_0",
+        "campaignId": "camp_15",
+        "placementId": "pl_pdp_below_title",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_15",
+      "campaignId": "camp_15",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_15",
+      "campaignId": "camp_15",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": null
+  },
+  {
+    "id": "camp_16",
+    "storeId": "gcw",
+    "name": "FINAL HOURS",
+    "type": "banner",
+    "status": "draft",
+    "priority": 0,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "FINAL HOURS!\nSave an EXTRA 20% OFF in cart.",
+      "backgroundColor": "#dc2626",
+      "textColor": "#ffffff",
+      "borderColor": "#dc2626",
+      "stylePreset": "solid-red"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_16",
+        "campaignId": "camp_16",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_16_1",
+        "groupId": "rg_root_camp_16",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "final-hours",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_16_0",
+        "campaignId": "camp_16",
+        "placementId": "pl_pdp_above_atc",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_16",
+      "campaignId": "camp_16",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_16",
+      "campaignId": "camp_16",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": null
+  },
+  {
+    "id": "camp_17",
+    "storeId": "gcw",
+    "name": "FREE SHIPPING $50+",
+    "type": "banner",
+    "status": "live",
+    "priority": 7,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "FREE SHIPPING on orders $50+\nLimited Time Only.",
+      "backgroundColor": "#ecfdf5",
+      "textColor": "#065f46",
+      "borderColor": "#a7f3d0",
+      "stylePreset": "soft-green"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_17",
+        "campaignId": "camp_17",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_17_1",
+        "groupId": "rg_root_camp_17",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "free-shipping",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_17_0",
+        "campaignId": "camp_17",
+        "placementId": "pl_pdp_below_price",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_17",
+      "campaignId": "camp_17",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_17",
+      "campaignId": "camp_17",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": "2026-04-01T08:00:00Z"
+  },
+  {
+    "id": "camp_18",
+    "storeId": "gcw",
+    "name": "DOORBUSTER DEALS",
+    "type": "banner",
+    "status": "draft",
+    "priority": 2,
+    "conflictMode": "replace",
+    "maxPerPlacement": 1,
+    "templateId": null,
+    "creative": {
+      "text": "SHOP EARLY AND SAVE BIG WITH DOORBUSTER DEALS.",
+      "backgroundColor": "#0ea5e9",
+      "textColor": "#ffffff",
+      "borderColor": "#0284c7",
+      "stylePreset": "solid-blue"
+    },
+    "ruleGroups": [
+      {
+        "id": "rg_root_camp_18",
+        "campaignId": "camp_18",
+        "parentGroupId": null,
+        "operator": "AND",
+        "includeMode": "include",
+        "sortOrder": 0
+      }
+    ],
+    "ruleConditions": [
+      {
+        "id": "rc_camp_18_1",
+        "groupId": "rg_root_camp_18",
+        "field": "product_tag",
+        "comparator": "contains",
+        "value": "doorbuster",
+        "sortOrder": 0
+      }
+    ],
+    "placements": [
+      {
+        "id": "cp_camp_18_0",
+        "campaignId": "camp_18",
+        "placementId": "pl_pdp_below_atc",
+        "layoutKey": "default",
+        "deviceScope": "all",
+        "priorityOverride": null
+      }
+    ],
+    "schedule": {
+      "id": "sched_camp_18",
+      "campaignId": "camp_18",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": null,
+      "timezone": "America/New_York",
+      "isActive": true
+    },
+    "styleConfig": {
+      "id": "style_camp_18",
+      "campaignId": "camp_18",
+      "tokenOverrides": {},
+      "customCssRaw": "",
+      "customCssScoped": "",
+      "safeMode": "balanced",
+      "lintErrors": [],
+      "lintWarnings": []
+    },
+    "createdAt": "2026-04-01T08:00:00Z",
+    "updatedAt": "2026-04-01T08:00:00Z",
+    "publishedAt": null
+  }
+]

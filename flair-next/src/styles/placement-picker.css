@@ -11,6 +11,34 @@
   justify-content: space-between;
 }
 
+.placement-layout-summary {
+  border: 1px solid #dbeafe;
+  background: #f8fbff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 4px;
+}
+
+.placement-layout-summary-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5b6b7f;
+}
+
+.placement-layout-summary-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e3a5f;
+}
+
+.placement-layout-summary-copy {
+  font-size: 12px;
+  color: #64748b;
+}
+
 .placement-picker-count {
   font-size: 13px;
   font-weight: 600;
@@ -105,7 +133,7 @@
 .placement-slot-info {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
 }
 
 .placement-slot-name {
@@ -117,6 +145,18 @@
 .placement-slot-desc {
   font-size: 11px;
   color: #64748b;
+}
+
+.placement-slot-layout-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 /* Device scope selector (shown when slot is selected) */
@@ -155,6 +195,9 @@
   font-size: 11px;
   color: #64748b;
   padding-top: 4px;
+}
+.placement-legend-spacer {
+  width: 10px;
 }
 .placement-legend-dot {
   width: 10px;

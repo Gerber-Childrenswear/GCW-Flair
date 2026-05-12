@@ -13,28 +13,98 @@ export type DesignAsset = {
   description: string;
 };
 
+export type ColorOption = {
+  name: string;
+  hex: string;
+  category: string;
+};
+
+export type TypographySize = {
+  size: string;
+  label: string;
+};
+
+export type FontWeight = {
+  weight: string;
+  label: string;
+};
+
+// Gerber brand colors from Design System V1.0
+export const GERBER_COLORS: ColorOption[] = [
+  // Brand Colors Official (Canonical)
+  { name: "Oxford Blue", hex: "#002744", category: "Brand Official" },
+  { name: "Jordy Blue", hex: "#85B7EA", category: "Brand Official" },
+  { name: "Hawkes Blue", hex: "#CEE2F7", category: "Brand Official" },
+  { name: "Spring Wood", hex: "#F9F5F3", category: "Brand Official" },
+  { name: "Ronchi", hex: "#F2C94C", category: "Brand Official" },
+  { name: "Sandy Brown", hex: "#F4A261", category: "Brand Official" },
+  { name: "Geraldine", hex: "#F28C82", category: "Brand Official" },
+  { name: "Sea Nymph", hex: "#86B3A1", category: "Brand Official" },
+  
+  // Navy Shades (from Oxford Blue)
+  { name: "Navy 80", hex: "#335369", category: "Navy Shades" },
+  { name: "Navy 60", hex: "#667F8E", category: "Navy Shades" },
+  { name: "Navy 40", hex: "#99A9B4", category: "Navy Shades" },
+  { name: "Navy 20", hex: "#CCD4D9", category: "Navy Shades" },
+  
+  // Neutrals & Accents
+  { name: "White", hex: "#FFFFFF", category: "Neutrals" },
+  { name: "Off-White 2", hex: "#F4EFEC", category: "Neutrals" },
+  { name: "Hairline", hex: "#E6E8EC", category: "Neutrals" },
+  { name: "Sky", hex: "#5A9FDB", category: "Accents" },
+  { name: "Sky 700 (Focus)", hex: "#2B7AC1", category: "Accents" },
+  
+  // Functional
+  { name: "Coral (Sale)", hex: "#BF360C", category: "Functional" },
+  { name: "Coral Tint", hex: "#FBE9E4", category: "Functional" },
+  { name: "Success", hex: "#1A7F37", category: "Functional" },
+];
+
+// Typography sizes from Design System V1.0 (Montserrat scale)
+export const TYPOGRAPHY_SIZES: TypographySize[] = [
+  { size: "12px", label: "Caption / Eyebrow" },
+  { size: "13px", label: "Button Label" },
+  { size: "14px", label: "Body" },
+  { size: "16px", label: "Body Large / H6" },
+  { size: "18px", label: "H5" },
+  { size: "22px", label: "H4" },
+  { size: "28px", label: "H3" },
+  { size: "32px", label: "H2" },
+  { size: "40px", label: "H1" },
+  { size: "64px", label: "Display 2" },
+  { size: "91.4px", label: "Display 1" },
+];
+
+// Font weights from Design System V1.0
+export const FONT_WEIGHTS: FontWeight[] = [
+  { weight: "400", label: "Regular" },
+  { weight: "500", label: "Medium" },
+  { weight: "600", label: "Semibold" },
+  { weight: "700", label: "Bold" },
+];
+
 export const DESIGN_PRESETS: DesignPreset[] = [
   {
     id: "gerber-core-navy",
     label: "Gerber Core Navy",
     creative: {
-      backgroundColor: "#1a3a5c",
+      backgroundColor: "#002744",
       textColor: "#ffffff",
-      borderColor: "#1a3a5c",
+      borderColor: "#002744",
       stylePreset: "solid-dark",
       textSize: "14px",
-      fontWeight: "700",
+      fontWeight: "600",
       borderWidthPreset: "thin",
       cornerPreset: "rounded",
     },
   },
   {
-    id: "gerber-sale-red",
-    label: "Gerber Sale Red",
+    id: "gerber-sale-coral",
+    label: "Gerber Sale Coral",
     creative: {
-      backgroundColor: "#dc2626",
+      backgroundColor: "#BF360C",
       textColor: "#ffffff",
-      borderColor: "#dc2626",
+      borderColor: "#BF360C",
       stylePreset: "solid-red",
       textSize: "14px",
       fontWeight: "700",
@@ -43,13 +113,13 @@ export const DESIGN_PRESETS: DesignPreset[] = [
     },
   },
   {
-    id: "gerber-soft-cream",
-    label: "Gerber Soft Cream",
+    id: "gerber-spring-wood",
+    label: "Gerber Spring Wood",
     creative: {
-      backgroundColor: "#f5f0eb",
-      textColor: "#4a3728",
-      borderColor: "#e0d5c8",
-      stylePreset: "soft-warm",
+      backgroundColor: "#F9F5F3",
+      textColor: "#002744",
+      borderColor: "#E6E8EC",
+      stylePreset: "outline-light",
       textSize: "14px",
       fontWeight: "600",
       borderWidthPreset: "thin",
@@ -57,12 +127,12 @@ export const DESIGN_PRESETS: DesignPreset[] = [
     },
   },
   {
-    id: "gerber-soft-green",
-    label: "Gerber Soft Green",
+    id: "gerber-sea-nymph",
+    label: "Gerber Sea Nymph",
     creative: {
-      backgroundColor: "#ecfdf5",
-      textColor: "#065f46",
-      borderColor: "#a7f3d0",
+      backgroundColor: "#86B3A1",
+      textColor: "#ffffff",
+      borderColor: "#86B3A1",
       stylePreset: "soft-green",
       textSize: "14px",
       fontWeight: "600",
@@ -71,13 +141,55 @@ export const DESIGN_PRESETS: DesignPreset[] = [
     },
   },
   {
-    id: "gerber-clean-white",
-    label: "Gerber Clean White",
+    id: "gerber-sandy-brown",
+    label: "Gerber Sandy Brown",
     creative: {
-      backgroundColor: "#ffffff",
-      textColor: "#333333",
-      borderColor: "#e2e5ea",
-      stylePreset: "outline-light",
+      backgroundColor: "#F4A261",
+      textColor: "#ffffff",
+      borderColor: "#F4A261",
+      stylePreset: "solid-orange",
+      textSize: "14px",
+      fontWeight: "600",
+      borderWidthPreset: "thin",
+      cornerPreset: "rounded",
+    },
+  },
+  {
+    id: "gerber-jordy-blue",
+    label: "Gerber Jordy Blue",
+    creative: {
+      backgroundColor: "#85B7EA",
+      textColor: "#002744",
+      borderColor: "#85B7EA",
+      stylePreset: "solid-blue",
+      textSize: "14px",
+      fontWeight: "600",
+      borderWidthPreset: "thin",
+      cornerPreset: "rounded",
+    },
+  },
+  {
+    id: "gerber-ronchi",
+    label: "Gerber Ronchi",
+    creative: {
+      backgroundColor: "#F2C94C",
+      textColor: "#002744",
+      borderColor: "#F2C94C",
+      stylePreset: "solid-yellow",
+      textSize: "14px",
+      fontWeight: "600",
+      borderWidthPreset: "thin",
+      cornerPreset: "rounded",
+    },
+  },
+  {
+    id: "gerber-geraldine",
+    label: "Gerber Geraldine",
+    creative: {
+      backgroundColor: "#F28C82",
+      textColor: "#ffffff",
+      borderColor: "#F28C82",
+      stylePreset: "soft-pink",
       textSize: "14px",
       fontWeight: "600",
       borderWidthPreset: "thin",
@@ -122,10 +234,10 @@ export function getDefaultDesignSystemConfig(): DesignSystemConfig {
       { tag: "clearance", presetId: "gerber-sale-red" },
     ],
     metafieldRules: [
-      { namespace: "custom", key: "flair_theme", presetId: "gerber-core-navy" },
+      { namespace: "custom", key: "campaign_theme", presetId: "gerber-core-navy" },
     ],
     metaobjectRules: [
-      { type: "flair_theme", field: "variant", value: "default", presetId: "gerber-core-navy" },
+      { type: "campaign_theme", field: "variant", value: "default", presetId: "gerber-core-navy" },
     ],
   };
 }

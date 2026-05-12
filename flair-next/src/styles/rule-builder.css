@@ -16,6 +16,12 @@
   gap: 8px;
 }
 
+.rule-group--depth-0 { --group-color: #8c9196; }
+.rule-group--depth-1 { --group-color: #b0b4b8; }
+.rule-group--depth-2 { --group-color: #c9cccf; }
+.rule-group--depth-3 { --group-color: #d2d5d8; }
+.rule-group--depth-4 { --group-color: #dfe3e8; }
+
 .rule-group + .rule-group {
   margin-top: 4px;
 }
@@ -51,6 +57,10 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-right: 4px;
+}
+
+.rule-group-label--behavior {
+  margin-left: 12px;
 }
 
 .rule-group-actions {

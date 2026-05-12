@@ -38,7 +38,7 @@ function getValuePlaceholder(field: ConditionField): string {
     case "metafield_value":
       return "namespace.key | value (e.g. custom.sale_badge | true)";
     case "metaobject_handle":
-      return "metaobject type handle (e.g. flair_theme)";
+      return "metaobject type handle (e.g. campaign_theme)";
     default:
       return "Enter value";
   }
@@ -72,14 +72,10 @@ function RuleGroupBlock({
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const isRoot = group.parentGroupId === null;
-  const depthColors = ["#8c9196", "#b0b4b8", "#c9cccf", "#d2d5d8", "#dfe3e8"];
-  const borderColor = depthColors[Math.min(depth, depthColors.length - 1)];
+  const depthClass = `rule-group--depth-${Math.min(depth, 4)}`;
 
   return (
-    <div
-      className="rule-group"
-      style={{ "--group-color": borderColor } as React.CSSProperties}
-    >
+    <div className={`rule-group ${depthClass}`}>
       <div className="rule-group-header">
         <div className="rule-group-controls">
           <span className="rule-group-label">{isRoot ? "Condition set" : "Nested group"}</span>
@@ -93,7 +89,7 @@ function RuleGroupBlock({
             onClick={() => onUpdate(group.id, { operator: "OR" })}
             title="Any condition may match"
           >ANY</button>
-          <span className="rule-group-label" style={{ marginLeft: "12px" }}>Behavior</span>
+          <span className="rule-group-label rule-group-label--behavior">Behavior</span>
           <button
             className={`rule-mode-toggle ${group.includeMode === "include" ? "include" : ""}`}
             onClick={() => onUpdate(group.id, { includeMode: "include" })}
@@ -186,6 +182,8 @@ function ConditionRow({ condition, onUpdate, onRemove }: ConditionRowProps) {
 
       <select
         className="rule-select rule-select--field"
+        aria-label="Condition field"
+        title="Condition field"
         value={condition.field}
         onChange={(e) => handleFieldChange(e.target.value as ConditionField)}
       >
@@ -196,6 +194,8 @@ function ConditionRow({ condition, onUpdate, onRemove }: ConditionRowProps) {
 
       <select
         className="rule-select rule-select--comparator"
+        aria-label="Condition comparator"
+        title="Condition comparator"
         value={condition.comparator}
         onChange={(e) => onUpdate({ comparator: e.target.value as Comparator })}
       >
@@ -228,7 +228,7 @@ function ConditionRow({ condition, onUpdate, onRemove }: ConditionRowProps) {
         <input
           type="text"
           className="rule-input rule-input--value"
-          placeholder="metaobject type handle (e.g. flair_theme)"
+          placeholder="metaobject type handle (e.g. campaign_theme)"
           value={condition.value}
           onChange={(e) => onUpdate({ value: e.target.value })}
         />

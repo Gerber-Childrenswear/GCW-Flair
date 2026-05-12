@@ -8,6 +8,9 @@ import { generateId } from "../data/mock-campaigns";
 import {
   DESIGN_ASSETS,
   DESIGN_PRESETS,
+  GERBER_COLORS,
+  TYPOGRAPHY_SIZES,
+  FONT_WEIGHTS,
   getDefaultDesignSystemConfig,
   getDesignPresetById,
   applyDesignPresetToCreative,
@@ -20,21 +23,25 @@ type Props = {
   onCancel: () => void;
 };
 
-const presetColors = [
-  { name: "Dark Navy",   bg: "#1a3a5c", text: "#ffffff", border: "#1a3a5c", preset: "solid-dark"    },
-  { name: "Red Alert",   bg: "#dc2626", text: "#ffffff", border: "#dc2626", preset: "solid-red"     },
-  { name: "Soft Green",  bg: "#ecfdf5", text: "#065f46", border: "#a7f3d0", preset: "soft-green"    },
-  { name: "Warm Cream",  bg: "#f5f0eb", text: "#4a3728", border: "#e0d5c8", preset: "soft-warm"     },
-  { name: "Soft Pink",   bg: "#fce4ec", text: "#880e4f", border: "#f48fb1", preset: "soft-pink"     },
-  { name: "Sky Blue",    bg: "#0ea5e9", text: "#ffffff", border: "#0284c7", preset: "solid-blue"    },
-  { name: "Yellow",      bg: "#fef3c7", text: "#92400e", border: "#fcd34d", preset: "solid-yellow"  },
-  { name: "Clean White", bg: "#ffffff", text: "#333333", border: "#e2e5ea", preset: "outline-light" },
-  { name: "Soft Purple", bg: "#f0eef5", text: "#3a2d5c", border: "#d8d0e8", preset: "soft-purple"   },
-  { name: "Soft Blue",   bg: "#eef4f9", text: "#1a3d5c", border: "#c8dae8", preset: "soft-blue"     },
-];
+const presetColors = GERBER_COLORS.map(color => ({
+  name: color.name,
+  bg: color.hex,
+  text: getContrastingTextColor(color.hex),
+  border: color.hex,
+  preset: color.category.toLowerCase().replace(/\s+/g, "-"),
+  className: `preset-swatch--${color.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`,
+}));
 
-const textSizeOptions = ["12px", "14px", "16px", "18px"] as const;
-const fontWeightOptions = ["500", "600", "700"] as const;
+// Helper function to determine contrasting text color
+function getContrastingTextColor(hexColor: string): string {
+  const hex = hexColor.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.5 ? "#002744" : "#ffffff";
+}
+
 const paddingOptions = ["tight", "normal", "spacious"] as const;
 const letterSpacingOptions = ["normal", "wide", "wider"] as const;
 const borderWidthOptions = ["none", "thin", "medium"] as const;
@@ -46,7 +53,7 @@ function compileScopedCss(rawCss: string, campaignId: string, safeMode: "strict"
   if (!trimmed) return "";
 
   let css = trimmed;
-  const scopeClass = `.flair-campaign-${campaignId}`;
+  const scopeClass = `.gcw-campaign-${campaignId}`;
 
   // Block high-risk patterns outside of explicit "off" mode.
   if (safeMode !== "off") {
@@ -82,10 +89,10 @@ function compileScopedCss(rawCss: string, campaignId: string, safeMode: "strict"
         .map((selector) => selector.trim())
         .filter(Boolean)
         .map((selector) => {
-          if (selector.includes(".flair-campaign")) {
+          if (selector.includes(".flair-campaign") || selector.includes(".gcw-campaign")) {
             return selector
-              .replace(/\.flair-campaign-[A-Za-z0-9_-]+/g, scopeClass)
-              .replace(/\.flair-campaign\b/g, scopeClass);
+              .replace(/\.(?:flair|gcw)-campaign-[A-Za-z0-9_-]+/g, scopeClass)
+              .replace(/\.(?:flair|gcw)-campaign\b/g, scopeClass);
           }
           return `${scopeClass} ${selector}`;
         })
@@ -132,7 +139,7 @@ function createBlank(type: CampaignType): Campaign {
     placements: [],
     priority: 10,
     conflictMode: "replace",
-    schedule: { startsAt: null, endsAt: null, timezone: "America/New_York", isActive: false },
+    schedule: { startsAt: null, endsAt: null, timezone: "America/New_York", isActive: false, timeOfDayStart: "00:00", timeOfDayEnd: "03:00" },
     targetScope: "product",
     promotionGroup: null,
     automationMode: "manual",
@@ -509,7 +516,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
               )}
 
               <p className="design-system-note">
-                Set default standards, then override by product tags or Shopify data models for automated flair theming.
+                Set default standards, then override by product tags or store data models for automated campaign theming.
               </p>
 
               <label className="field-label">
@@ -530,7 +537,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   rows={3}
                   value={metafieldRuleText}
                   onChange={(e) => updateDesignSystemConfig({ metafieldRules: parseMetafieldRuleLines(e.target.value) })}
-                  placeholder={`custom.flair_theme => gerber-core-navy\ncustom.badge_theme => gerber-soft-green`}
+                  placeholder={`custom.campaign_theme => gerber-core-navy\ncustom.badge_theme => gerber-soft-green`}
                 />
               </label>
 
@@ -541,7 +548,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   rows={3}
                   value={metaobjectRuleText}
                   onChange={(e) => updateDesignSystemConfig({ metaobjectRules: parseMetaobjectRuleLines(e.target.value) })}
-                  placeholder={`flair_theme:variant=default => gerber-core-navy\nflair_theme:variant=sale => gerber-sale-red`}
+                  placeholder={`campaign_theme:variant=default => gerber-core-navy\ncampaign_theme:variant=sale => gerber-sale-red`}
                 />
               </label>
             </fieldset>
@@ -554,8 +561,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   {presetColors.map((p) => (
                     <button
                       key={p.name}
-                      className={`preset-swatch ${draft.creative.backgroundColor === p.bg ? "active" : ""}`}
-                      style={{ backgroundColor: p.bg, color: p.text, borderColor: p.border }}
+                      className={`preset-swatch ${p.className} ${draft.creative.backgroundColor === p.bg ? "active" : ""}`}
                       onClick={() => updateCreative({ backgroundColor: p.bg, textColor: p.text, borderColor: p.border, stylePreset: p.preset })}
                       title={p.name}
                     >Aa</button>
@@ -582,16 +588,16 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                     value={draft.creative.textSize ?? "14px"}
                     onChange={(e) => updateCreative({ textSize: e.target.value as Campaign["creative"]["textSize"] })}
                   >
-                    {textSizeOptions.map((v) => <option key={v} value={v}>{v}</option>)}
+                    {TYPOGRAPHY_SIZES.map((t) => <option key={t.size} value={t.size}>{t.size} - {t.label}</option>)}
                   </select>
                 </label>
                 <label className="field-label">
                   Text style
                   <select
-                    value={draft.creative.fontWeight ?? "700"}
+                    value={draft.creative.fontWeight ?? "600"}
                     onChange={(e) => updateCreative({ fontWeight: e.target.value as Campaign["creative"]["fontWeight"] })}
                   >
-                    {fontWeightOptions.map((v) => <option key={v} value={v}>{v === "700" ? "bold" : v}</option>)}
+                    {FONT_WEIGHTS.map((w) => <option key={w.weight} value={w.weight}>{w.label} ({w.weight})</option>)}
                   </select>
                 </label>
                 <label className="field-label">
@@ -747,7 +753,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                 <span>Enable A/B testing for this campaign</span>
               </label>
               {draft.abTestConfig?.enabled && (
-                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#f9fafb", borderRadius: "6px" }}>
+                <div className="section-callout">
                   <label className="field-label">
                     Test name
                     <input
@@ -772,7 +778,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                       <option value="revenue">Revenue</option>
                     </select>
                   </label>
-                  <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: "8px 0 0 0" }}>
+                  <p className="helper-copy">
                     {draft.abTestConfig.variants?.length || 0} variant(s) configured
                   </p>
                 </div>
@@ -814,7 +820,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
 
             <fieldset className="editor-section">
               <legend>Variant Targeting</legend>
-              <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "0 0 12px 0" }}>
+              <p className="helper-copy helper-copy--block">
                 Optionally target specific product variants. Leave empty to target all matching products.
               </p>
               <label className="field-label">
@@ -856,7 +862,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                 <span>Enable advanced workflows</span>
               </label>
               {draft.workflowConfig?.enabled && (
-                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#f9fafb", borderRadius: "6px" }}>
+                <div className="section-callout">
                   <label className="field-label">
                     Workflow trigger
                     <select
@@ -871,7 +877,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                       <option value="performance_milestone">Performance Milestone</option>
                     </select>
                   </label>
-                  <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: "8px 0 0 0" }}>
+                  <p className="helper-copy">
                     Workflows will execute {draft.workflowConfig.trigger} automatically
                   </p>
                 </div>
@@ -947,7 +953,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                 <span>Enable revenue and ROI tracking</span>
               </label>
               {draft.metricsConfig?.enabled && (
-                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#f9fafb", borderRadius: "6px" }}>
+                <div className="section-callout">
                   <label className="field-label">
                     ROI target (%)
                     <input
@@ -1008,14 +1014,14 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                 <div className="css-status-chip">
                   {(draft.styleConfig?.customCssRaw ?? "").trim() ? "Custom CSS active" : "No custom CSS"}
                 </div>
-                <div className="css-status-meta">Scope target: .flair-campaign-{draft.id}</div>
+                <div className="css-status-meta">Scope target: .gcw-campaign-{draft.id}</div>
                 <div className="css-status-meta">Preview applies scoped CSS in real time.</div>
               </div>
 
               <div className="css-code-box">
                 <div className="css-code-box-header">
                   <span>CSS</span>
-                  <span className="css-code-box-scope">{`.flair-campaign-${draft.id}`}</span>
+                  <span className="css-code-box-scope">{`.gcw-campaign-${draft.id}`}</span>
                 </div>
                 <textarea
                   id="css-editor-area"
@@ -1023,14 +1029,14 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   rows={12}
                   value={draft.styleConfig?.customCssRaw ?? ""}
                   onChange={(e) => setCustomCss(e.target.value)}
-                  placeholder={`.flair-campaign {\n  border-radius: 12px;\n  box-shadow: 0 6px 18px rgba(17, 37, 63, 0.18);\n}\n\n.flair-campaign .headline {\n  letter-spacing: 0.08em;\n}`}
+                  placeholder={`.gcw-campaign {\n  border-radius: 12px;\n  box-shadow: 0 6px 18px rgba(17, 37, 63, 0.18);\n}\n\n.gcw-campaign .headline {\n  letter-spacing: 0.08em;\n}`}
                   spellCheck={false}
                 />
                 <div className="css-code-footer">
                   <button
                     className="css-snippet-btn"
                     onClick={() =>
-                      setCustomCss(`${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  border-radius: 14px;\n}`.trim())
+                      setCustomCss(`${draft.styleConfig?.customCssRaw ?? ""}\n.gcw-campaign {\n  border-radius: 14px;\n}`.trim())
                     }
                   >
                     + Rounded corners
@@ -1038,7 +1044,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   <button
                     className="css-snippet-btn"
                     onClick={() =>
-                      setCustomCss(`${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}`.trim())
+                      setCustomCss(`${draft.styleConfig?.customCssRaw ?? ""}\n.gcw-campaign {\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}`.trim())
                     }
                   >
                     + Bold headline
@@ -1046,7 +1052,7 @@ export default function CampaignEditor({ campaign, type, onSave, onCancel }: Pro
                   <button
                     className="css-snippet-btn"
                     onClick={() =>
-                      setCustomCss(`${draft.styleConfig?.customCssRaw ?? ""}\n.flair-campaign {\n  animation: flair-pulse 1.8s ease-in-out infinite;\n}\n@keyframes flair-pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.65; }\n}`.trim())
+                      setCustomCss(`${draft.styleConfig?.customCssRaw ?? ""}\n.gcw-campaign {\n  animation: campaign-pulse 1.8s ease-in-out infinite;\n}\n@keyframes campaign-pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.65; }\n}`.trim())
                     }
                   >
                     + Pulse animation

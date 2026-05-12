@@ -7,18 +7,18 @@ type QuickAction = {
 const quickActions: QuickAction[] = [
   {
     title: "Theme status",
-    subtitle: "Flair is enabled\n3 app blocks detected",
+    subtitle: "Campaign app is enabled\n3 app blocks detected",
     cta: "Inspect",
   },
   {
-    title: "Automation health",
-    subtitle: "2 scheduled launches\n4 always-on promotions",
+    title: "Badge inventory",
+    subtitle: "Review all active badges\nand queued launches.",
     cta: "Open",
   },
   {
-    title: "Template library",
-    subtitle: "Start from proven conversion templates for badges and banners.",
-    cta: "Browse",
+    title: "Banner inventory",
+    subtitle: "Review all active banners\nand placement coverage.",
+    cta: "Open",
   },
 ];
 
@@ -32,12 +32,12 @@ export default function QuickActions({ onNavigate }: QuickActionsProps) {
       onNavigate("Settings");
       return;
     }
-    if (title === "Automation health") {
-      onNavigate("Automations");
+    if (title === "Badge inventory") {
+      onNavigate("Badges");
       return;
     }
-    if (title === "Template library") {
-      onNavigate("Templates");
+    if (title === "Banner inventory") {
+      onNavigate("Banners");
     }
   };
 

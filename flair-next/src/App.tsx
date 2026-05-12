@@ -6,22 +6,20 @@ import QuickActions from "./components/QuickActions";
 import HelpCenter from "./components/HelpCenter";
 import CampaignList from "./components/CampaignList";
 import CampaignEditor from "./components/CampaignEditor";
+import LayoutLibrary from "./components/LayoutLibrary";
 import Settings from "./components/Settings";
-import TemplateLibrary, { type TemplateDef } from "./components/TemplateLibrary";
-import AnalyticsDashboard from "./components/AnalyticsDashboard";
-import AutomationCenter from "./components/AutomationCenter";
-import CountdownManager from "./components/CountdownManager";
 import { generateId, mockBadges, mockBanners } from "./data/mock-campaigns";
 import { getDefaultDesignSystemConfig, getDesignPresetById } from "./data/design-system";
+import { buildCampaignPlacements, type LayoutDefinition } from "./data/layout-library";
 import { createCampaign, fetchCampaigns, updateCampaign } from "./api/client";
-import type { Campaign } from "./types/campaign";
+import type { Campaign, CampaignType } from "./types/campaign";
 
 type EditorState = {
   type: "badge" | "banner";
   campaign: Campaign | null;
 };
 
-function createCampaignFromTemplate(type: "badge" | "banner", template: TemplateDef): Campaign {
+function createCampaignDraft(type: CampaignType, layout?: LayoutDefinition): Campaign {
   const now = new Date().toISOString();
   const id = generateId();
   const rootGroupId = `rg_root_${id}`;
@@ -32,13 +30,13 @@ function createCampaignFromTemplate(type: "badge" | "banner", template: Template
     id,
     type,
     status: "draft",
-    name: template.name,
+    name: layout ? layout.name : "",
     creative: {
-      text: template.defaultCreative.text ?? "",
-      backgroundColor: template.defaultCreative.backgroundColor ?? defaultPreset?.creative.backgroundColor ?? "#1a3a5c",
-      textColor: template.defaultCreative.textColor ?? defaultPreset?.creative.textColor ?? "#ffffff",
-      borderColor: template.defaultCreative.borderColor ?? defaultPreset?.creative.borderColor ?? "#1a3a5c",
-      stylePreset: template.defaultCreative.stylePreset ?? defaultPreset?.creative.stylePreset ?? "solid-dark",
+      text: "",
+      backgroundColor: defaultPreset?.creative.backgroundColor ?? "#1a3a5c",
+      textColor: defaultPreset?.creative.textColor ?? "#ffffff",
+      borderColor: defaultPreset?.creative.borderColor ?? "#1a3a5c",
+      stylePreset: defaultPreset?.creative.stylePreset ?? "solid-dark",
       contentMode: "text",
       textSize: defaultPreset?.creative.textSize ?? "14px",
       fontWeight: defaultPreset?.creative.fontWeight ?? "700",
@@ -52,10 +50,10 @@ function createCampaignFromTemplate(type: "badge" | "banner", template: Template
       { id: rootGroupId, parentGroupId: null, operator: "AND", includeMode: "include", sortOrder: 0 },
     ],
     ruleConditions: [],
-    placements: [],
+    placements: layout ? buildCampaignPlacements(layout) : [],
     priority: 10,
     conflictMode: "replace",
-    schedule: { startsAt: null, endsAt: null, timezone: "America/New_York", isActive: false },
+    schedule: { startsAt: null, endsAt: null, timezone: "America/New_York", isActive: false, timeOfDayStart: "00:00", timeOfDayEnd: "03:00" },
     targetScope: "product",
     promotionGroup: null,
     automationMode: "manual",
@@ -66,7 +64,7 @@ function createCampaignFromTemplate(type: "badge" | "banner", template: Template
       urgencyThresholdHours: 24,
     },
     linkUrl: null,
-    tags: [],
+    tags: layout ? [layout.id] : [],
     styleConfig: {
       customCssRaw: "",
       customCssScoped: "",
@@ -79,7 +77,8 @@ function createCampaignFromTemplate(type: "badge" | "banner", template: Template
 }
 
 export default function App() {
-  const [activeView, setActiveView] = useState("Dashboard");
+  const [activeView, setActiveView] = useState("Overview");
+  const [activeLayoutLibrary, setActiveLayoutLibrary] = useState<CampaignType | null>(null);
   const [badges, setBadges] = useState<Campaign[]>(mockBadges);
   const [banners, setBanners] = useState<Campaign[]>(mockBanners);
   const [editor, setEditor] = useState<EditorState | null>(null);
@@ -110,6 +109,7 @@ export default function App() {
 
   const handleNavigate = useCallback((view: string) => {
     setActiveView(view);
+    setActiveLayoutLibrary(null);
     setEditor(null);
   }, []);
 
@@ -126,10 +126,16 @@ export default function App() {
 
   const handleAdd = useCallback(
     (type: "badge" | "banner") => {
+      setActiveLayoutLibrary(null);
       setEditor({ type, campaign: null });
     },
     [],
   );
+
+  const handleSelectLayout = useCallback((layout: LayoutDefinition) => {
+    setActiveLayoutLibrary(null);
+    setEditor({ type: layout.type, campaign: createCampaignDraft(layout.type, layout) });
+  }, []);
 
   const handleSave = useCallback(
     async (campaign: Campaign) => {
@@ -232,19 +238,21 @@ export default function App() {
   }, []);
 
   const allCampaigns = [...badges, ...banners];
-  const activeViewLabel = activeView === "Dashboard" ? "Overview" : activeView;
+  const activeViewLabel = activeLayoutLibrary
+    ? `${activeLayoutLibrary === "badge" ? "Badge" : "Banner"} Layouts`
+    : activeView;
 
   // If editor is open, show it
   if (editor) {
     return (
       <div className="app-shell">
-        <Topbar />
+        <Topbar activeView={activeView} />
         <div className="workspace">
           <Sidebar activeApp={activeView} onNavigate={handleNavigate} />
           <main className="content">
             <section className="workspace-head">
               <div>
-                <p className="workspace-kicker">GCW-Flair</p>
+                <p className="workspace-kicker">Gerber Childrenswear</p>
                 <h1>Campaign Builder</h1>
               </div>
               <div className="workspace-head-actions">
@@ -266,25 +274,29 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Topbar />
+      <Topbar activeView={activeView} />
       <div className="workspace">
         <Sidebar activeApp={activeView} onNavigate={handleNavigate} />
 
         <main className="content">
           <section className="workspace-head">
             <div>
-              <p className="workspace-kicker">GCW-Flair</p>
+              <p className="workspace-kicker">Gerber Childrenswear</p>
               <h1>{activeViewLabel}</h1>
             </div>
             <div className="workspace-head-actions">
-              <span className="workspace-pill">{allCampaigns.filter((c) => c.status === "live").length} live</span>
-              <button className="ghost-btn" onClick={() => handleAdd("badge")}>+ New badge</button>
-              <button className="primary-btn" onClick={() => handleAdd("banner")}>+ New banner</button>
+              {!activeLayoutLibrary && (
+                <>
+                  <span className="workspace-pill">{allCampaigns.filter((c) => c.status === "live").length} live</span>
+                  <button className="ghost-btn" onClick={() => handleAdd("badge")}>+ New badge</button>
+                  <button className="primary-btn" onClick={() => handleAdd("banner")}>+ New banner</button>
+                </>
+              )}
             </div>
           </section>
 
           {notice && <div className="panel placeholder-msg">{notice}</div>}
-          {activeView === "Dashboard" && (
+          {activeView === "Overview" && (
             <>
               <StatCards campaigns={allCampaigns} onViewSection={handleNavigate} />
               <QuickActions onNavigate={handleNavigate} />
@@ -293,50 +305,37 @@ export default function App() {
           )}
 
           {activeView === "Badges" && (
-            <CampaignList
-              campaigns={badges}
-              type="badge"
-              onEdit={handleEdit}
-              onAdd={() => handleAdd("badge")}
-              onBulkDuplicate={handleBulkDuplicate}
-              onBulkStatusChange={handleBulkStatusChange}
-              onBulkDelete={handleBulkDelete}
-            />
+            activeLayoutLibrary === "badge" ? (
+              <LayoutLibrary type="badge" onBack={() => setActiveLayoutLibrary(null)} onSelectLayout={handleSelectLayout} />
+            ) : (
+              <CampaignList
+                campaigns={badges}
+                type="badge"
+                onEdit={handleEdit}
+                onAdd={() => handleAdd("badge")}
+                onOpenLayouts={() => setActiveLayoutLibrary("badge")}
+                onBulkDuplicate={handleBulkDuplicate}
+                onBulkStatusChange={handleBulkStatusChange}
+                onBulkDelete={handleBulkDelete}
+              />
+            )
           )}
 
           {activeView === "Banners" && (
-            <CampaignList
-              campaigns={banners}
-              type="banner"
-              onEdit={handleEdit}
-              onAdd={() => handleAdd("banner")}
-              onBulkDuplicate={handleBulkDuplicate}
-              onBulkStatusChange={handleBulkStatusChange}
-              onBulkDelete={handleBulkDelete}
-            />
-          )}
-
-          {activeView === "Templates" && (
-            <TemplateLibrary
-              onApply={(template) => {
-                const draft = createCampaignFromTemplate("banner", template);
-                setEditor({ type: "banner", campaign: draft });
-                setActiveView("Banners");
-              }}
-              onClose={() => setActiveView("Banners")}
-            />
-          )}
-
-          {activeView === "Analytics" && (
-            <AnalyticsDashboard campaigns={[...badges, ...banners]} />
-          )}
-
-          {activeView === "Automations" && (
-            <AutomationCenter campaigns={[...badges, ...banners]} />
-          )}
-
-          {activeView === "Countdowns" && (
-            <CountdownManager campaigns={[...badges, ...banners]} />
+            activeLayoutLibrary === "banner" ? (
+              <LayoutLibrary type="banner" onBack={() => setActiveLayoutLibrary(null)} onSelectLayout={handleSelectLayout} />
+            ) : (
+              <CampaignList
+                campaigns={banners}
+                type="banner"
+                onEdit={handleEdit}
+                onAdd={() => handleAdd("banner")}
+                onOpenLayouts={() => setActiveLayoutLibrary("banner")}
+                onBulkDuplicate={handleBulkDuplicate}
+                onBulkStatusChange={handleBulkStatusChange}
+                onBulkDelete={handleBulkDelete}
+              />
+            )
           )}
 
           {activeView === "Settings" && <Settings onNavigate={handleNavigate} />}

@@ -10,6 +10,7 @@ export default function CampaignPreview({ campaign }: Props) {
   const lines = resolvedCreative.text.split("\n");
   const isBanner = campaign.type === "banner";
   const customCss = campaign.styleConfig?.customCssScoped?.trim() ?? campaign.styleConfig?.customCssRaw?.trim() ?? "";
+  const previewScopeClass = `gcw-campaign-${campaign.id}`;
   const countdownLine = campaign.countdown?.enabled && campaign.countdown.endsAt
     ? `${campaign.countdown.label}: ${new Date(campaign.countdown.endsAt).toLocaleString()}`
     : null;
@@ -53,28 +54,35 @@ export default function CampaignPreview({ campaign }: Props) {
   const borderWidth = borderWidthMap[resolvedCreative.borderWidthPreset ?? "thin"];
   const boxShadow = shadowMap[resolvedCreative.shadowPreset ?? "none"];
   const borderRadius = radiusMap[resolvedCreative.cornerPreset ?? (isBanner ? "square" : "rounded")];
+  const previewCss = `
+    .${previewScopeClass} {
+      background-color: ${resolvedCreative.backgroundColor};
+      color: ${resolvedCreative.textColor};
+      border-color: ${resolvedCreative.borderColor};
+      border-width: ${borderWidth};
+      border-style: solid;
+      border-radius: ${borderRadius};
+      box-shadow: ${boxShadow};
+      padding: ${padding};
+      letter-spacing: ${letterSpacing};
+      font-size: ${fontSize};
+      font-weight: ${fontWeight};
+    }
+
+    .${previewScopeClass}.preview-creative--mini {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+  `.trim();
 
   return (
     <div className="preview-wrapper">
-      {customCss && <style>{customCss}</style>}
+      {(customCss || previewCss) && <style>{[previewCss, customCss].filter(Boolean).join("\n")}</style>}
       <div className="preview-inline-frame">
         <div className="preview-inline-label">Preview</div>
         <div className="preview-inline-surface">
           <div
-            className={`preview-creative flair-campaign flair-campaign-${campaign.id} ${isBanner ? "preview-creative--banner" : "preview-creative--badge"}`}
-            style={{
-              backgroundColor: resolvedCreative.backgroundColor,
-              color: resolvedCreative.textColor,
-              borderColor: resolvedCreative.borderColor,
-              borderWidth,
-              borderStyle: "solid",
-              borderRadius,
-              boxShadow,
-              padding,
-              letterSpacing,
-              fontSize,
-              fontWeight,
-            }}
+            className={`preview-creative ${previewScopeClass} gcw-campaign flair-campaign flair-campaign-${campaign.id} ${isBanner ? "preview-creative--banner" : "preview-creative--badge"}`}
           >
             <div className="preview-headline">{headline}</div>
             {bodyLines.map((line, i) => (
@@ -95,20 +103,7 @@ export default function CampaignPreview({ campaign }: Props) {
                 <div className="preview-secondary-price">$29.99</div>
               </div>
               <div
-                className={`preview-creative preview-creative--badge preview-creative--mini flair-campaign flair-campaign-${campaign.id}`}
-                style={{
-                  backgroundColor: resolvedCreative.backgroundColor,
-                  color: resolvedCreative.textColor,
-                  borderColor: resolvedCreative.borderColor,
-                  borderWidth,
-                  borderStyle: "solid",
-                  borderRadius,
-                  boxShadow,
-                  padding: "4px 8px",
-                  letterSpacing,
-                  fontSize: "10px",
-                  fontWeight,
-                }}
+                className={`preview-creative preview-creative--badge preview-creative--mini ${previewScopeClass} gcw-campaign flair-campaign flair-campaign-${campaign.id}`}
               >
                 {headline}
               </div>

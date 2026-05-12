@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getLayoutById } from "../data/layout-library";
 import type { CampaignPlacement, DeviceScope } from "../types/campaign";
 
 // ── Placement slot registry (mirrors server store) ────────────────────────────
@@ -20,13 +21,18 @@ const ALL_PLACEMENTS: PlacementSlotDef[] = [
   { id: "pl_pdp_below_atc",      pageType: "pdp",         slotKey: "below_atc",        label: "Below Add to Cart",  description: "Below add-to-cart button" },
   { id: "pl_col_card_top",       pageType: "collection",  slotKey: "card_top",         label: "Card Top",           description: "Overlay on top-left of product card" },
   { id: "pl_col_card_bottom",    pageType: "collection",  slotKey: "card_bottom",      label: "Card Bottom",        description: "Banner across card bottom" },
+  { id: "pl_collection_top_banner", pageType: "collection", slotKey: "top_banner",    label: "Top Banner",        description: "Full-width banner at the top of collection pages" },
+  { id: "pl_home_top_banner",    pageType: "index",       slotKey: "top_banner",       label: "Home Top Banner",    description: "Announcement or promo banner above homepage content" },
+  { id: "pl_search_top_banner",  pageType: "search",      slotKey: "top_banner",       label: "Search Top Banner",  description: "Promo banner above search results" },
   { id: "pl_qv_body",            pageType: "quick_view",  slotKey: "quick_view_body",  label: "Quick View Body",    description: "Inside quick view modal, below price" },
+  { id: "pl_cart_top_banner",    pageType: "cart_drawer", slotKey: "top_banner",       label: "Cart Top Banner",    description: "Promo banner above cart drawer items" },
   { id: "pl_cart_item",          pageType: "cart_drawer", slotKey: "cart_drawer_item", label: "Cart Drawer Item",   description: "Inline with cart line items" },
 ];
 
 const PAGE_TYPE_LABELS: Record<string, string> = {
   pdp:         "Product Detail",
   collection:  "Collection",
+  index:       "Home",
   search:      "Search",
   quick_view:  "Quick View",
   cart_drawer: "Cart Drawer",
@@ -75,6 +81,8 @@ export default function PlacementPicker({ selected, onChange }: Props) {
   };
 
   const totalSelected = selected.length;
+  const selectedLayoutKeys = Array.from(new Set(selected.map((placement) => placement.layoutKey).filter((key) => key !== "default")));
+  const appliedLayout = selectedLayoutKeys.length === 1 ? getLayoutById(selectedLayoutKeys[0]) : undefined;
 
   return (
     <div className="placement-picker">
@@ -92,8 +100,20 @@ export default function PlacementPicker({ selected, onChange }: Props) {
         )}
       </div>
 
+      {appliedLayout && (
+        <div className="placement-layout-summary">
+          <div>
+            <div className="placement-layout-summary-label">Preset layout</div>
+            <div className="placement-layout-summary-title">{appliedLayout.name}</div>
+          </div>
+          <div className="placement-layout-summary-copy">
+            {appliedLayout.pageTypes.join(" • ")} | {appliedLayout.capabilities.join(" • ")}
+          </div>
+        </div>
+      )}
+
       {/* Page type tabs */}
-      <div className="placement-tabs" role="tablist">
+      <div className="placement-tabs" role="toolbar" aria-label="Placement page types">
         {PAGE_TYPES.map((pt) => {
           const count = selected.filter((s) =>
             ALL_PLACEMENTS.find((p) => p.id === s.placementId)?.pageType === pt
@@ -101,8 +121,7 @@ export default function PlacementPicker({ selected, onChange }: Props) {
           return (
             <button
               key={pt}
-              role="tab"
-              aria-selected={activeTab === pt}
+              type="button"
               className={`placement-tab ${activeTab === pt ? "active" : ""}`}
               onClick={() => setActiveTab(pt)}
             >
@@ -114,7 +133,7 @@ export default function PlacementPicker({ selected, onChange }: Props) {
       </div>
 
       {/* Slot grid */}
-      <div className="placement-slot-grid" role="tabpanel">
+      <div className="placement-slot-grid">
         {slotsForTab.map((def) => {
           const checked = isSelected(def.id);
           const existing = getPlacement(def.id);
@@ -133,6 +152,11 @@ export default function PlacementPicker({ selected, onChange }: Props) {
                 <div className="placement-slot-info">
                   <span className="placement-slot-name">{def.label}</span>
                   <span className="placement-slot-desc">{def.description}</span>
+                  {existing && existing.layoutKey !== "default" && (
+                    <span className="placement-slot-layout-badge">
+                      {getLayoutById(existing.layoutKey)?.name ?? existing.layoutKey}
+                    </span>
+                  )}
                 </div>
               </label>
 
@@ -157,7 +181,8 @@ export default function PlacementPicker({ selected, onChange }: Props) {
       {/* Visual mockup key */}
       <div className="placement-legend">
         <span className="placement-legend-dot selected-dot" /> Selected
-        <span className="placement-legend-dot unselected-dot" style={{ marginLeft: "16px" }} /> Available
+        <span className="placement-legend-spacer" />
+        <span className="placement-legend-dot unselected-dot" /> Available
       </div>
     </div>
   );

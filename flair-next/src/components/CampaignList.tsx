@@ -7,6 +7,7 @@ type Props = {
   type: CampaignType;
   onEdit: (id: string) => void;
   onAdd: () => void;
+  onOpenLayouts: () => void;
   onBulkDelete?: (ids: Set<string>) => void;
   onBulkDuplicate?: (ids: Set<string>) => void;
   onBulkStatusChange?: (ids: Set<string>, status: CampaignStatus) => void;
@@ -23,7 +24,7 @@ const statusFilters: { label: string; value: CampaignStatus | "all" }[] = [
   { label: "Archived", value: "archived" },
 ];
 
-export default function CampaignList({ campaigns, type, onEdit, onAdd, onBulkDelete, onBulkDuplicate, onBulkStatusChange }: Props) {
+export default function CampaignList({ campaigns, type, onEdit, onAdd, onOpenLayouts, onBulkDelete, onBulkDuplicate, onBulkStatusChange }: Props) {
   const [statusFilter, setStatusFilter] = useState<CampaignStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [layout, setLayout] = useState<LayoutMode>("grid");
@@ -75,6 +76,9 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onBulkDel
       <div className="campaign-list-head">
         <h1>{label}</h1>
         <div className="campaign-list-actions">
+          <button className="ghost-btn" onClick={onOpenLayouts}>
+            Layouts
+          </button>
           <div className="layout-toggle">
             <button
               className={`layout-btn ${layout === "grid" ? "active" : ""}`}
@@ -162,7 +166,7 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onBulkDel
 
       {published.length > 0 && (
         <>
-          <h3 className="section-divider">Published</h3>
+          <h3 className="section-divider">Published <span className="section-divider-count">{published.length}</span></h3>
           <div className={layout === "grid" ? gridClass : "campaign-list-view"}>
             {published.map((c) => (
               <CampaignCard 
@@ -179,7 +183,7 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onBulkDel
 
       {unpublished.length > 0 && (
         <>
-          <h3 className="section-divider">Unpublished</h3>
+          <h3 className="section-divider">Unpublished <span className="section-divider-count">{unpublished.length}</span></h3>
           <div className={layout === "grid" ? gridClass : "campaign-list-view"}>
             {unpublished.map((c) => (
               <CampaignCard 

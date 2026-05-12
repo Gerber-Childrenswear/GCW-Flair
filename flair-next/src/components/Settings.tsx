@@ -5,52 +5,23 @@ type SettingsProps = {
 export default function Settings({ onNavigate }: SettingsProps) {
   return (
     <div className="settings-page">
-      <h1>Settings</h1>
+      <div className="settings-page-head">
+        <h1>Settings</h1>
+      </div>
 
       <div className="settings-group">
         <div className="settings-group-title">General</div>
 
-        <div className="settings-row">
-          <div className="settings-icon">✓</div>
-          <div className="settings-info">
-            <div className="settings-info-title">Flair status</div>
-            <div className="settings-info-subtitle">Flair is enabled</div>
-          </div>
-          <div className="settings-action">
-            <button className="ghost-btn" onClick={() => onNavigate("Dashboard")}>Disable</button>
-          </div>
-        </div>
-
-        <div className="settings-row">
-          <div className="settings-icon">⊞</div>
-          <div className="settings-info">
-            <div className="settings-info-title">Billing plan</div>
-            <div className="settings-info-subtitle muted">Grow $49</div>
-          </div>
-          <div className="settings-action">
-            <button className="ghost-btn" onClick={() => onNavigate("Analytics")}>Manage</button>
-          </div>
-        </div>
-
-        <div className="settings-row">
-          <div className="settings-icon">⊕</div>
-          <div className="settings-info">
-            <div className="settings-info-title">Languages</div>
-            <div className="settings-info-subtitle muted">No additional languages enabled</div>
-          </div>
-          <div className="settings-action">
-            <button className="ghost-btn" onClick={() => onNavigate("Templates")}>Configure</button>
-          </div>
-        </div>
-
-        <div className="settings-row">
-          <div className="settings-icon">⚡</div>
-          <div className="settings-info">
-            <div className="settings-info-title">Flair generation</div>
-            <div className="settings-info-subtitle muted">You're using Flair Gen 3.</div>
-          </div>
-          <div className="settings-action">
-            <button className="ghost-btn" onClick={() => onNavigate("Automations")}>Details</button>
+        <div className="settings-card-surface">
+          <div className="settings-row settings-row--status">
+            <div className="settings-icon settings-icon--status">✓</div>
+            <div className="settings-info">
+              <div className="settings-info-title">App status</div>
+              <div className="settings-info-subtitle">Campaign app is enabled</div>
+            </div>
+            <div className="settings-action">
+              <button className="ghost-btn settings-action-btn" onClick={() => onNavigate("Overview")}>Disable</button>
+            </div>
           </div>
         </div>
       </div>
@@ -58,26 +29,24 @@ export default function Settings({ onNavigate }: SettingsProps) {
       <div className="settings-group">
         <div className="settings-group-title">Theme</div>
 
-        <div className="settings-row">
-          <div className="settings-icon">⛭</div>
-          <div className="settings-info">
-            <div className="settings-info-title">Theme setup</div>
-            <div className="settings-info-subtitle muted">Configure Flair in your Shopify theme.</div>
-          </div>
-          <div className="settings-action">
-            <button className="ghost-btn" onClick={() => onNavigate("Dashboard")}>Open</button>
-          </div>
-        </div>
+        <div className="settings-card-surface">
+          <button className="settings-row settings-row--nav" onClick={() => onNavigate("Badges")}>
+            <span className="settings-icon settings-icon--nav">⛭</span>
+            <span className="settings-info">
+              <span className="settings-info-title">Theme setup</span>
+              <span className="settings-info-subtitle muted">Configure badges and banners in your storefront theme.</span>
+            </span>
+            <span className="settings-chevron">›</span>
+          </button>
 
-        <div className="settings-row">
-          <div className="settings-icon">⇆</div>
-          <div className="settings-info">
-            <div className="settings-info-title">Theme triggers</div>
-            <div className="settings-info-subtitle muted">0 triggers configured</div>
-          </div>
-          <div className="settings-action">
-            <button className="ghost-btn" onClick={() => onNavigate("Automations")}>Edit</button>
-          </div>
+          <button className="settings-row settings-row--nav" onClick={() => onNavigate("Banners")}>
+            <span className="settings-icon settings-icon--nav">⇆</span>
+            <span className="settings-info">
+              <span className="settings-info-title">Theme triggers</span>
+              <span className="settings-info-subtitle muted">0 triggers configured</span>
+            </span>
+            <span className="settings-chevron">›</span>
+          </button>
         </div>
       </div>
     </div>

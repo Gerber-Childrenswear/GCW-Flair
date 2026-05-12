@@ -20,6 +20,11 @@ export default function CampaignCard({ campaign, onEdit, isSelected, onSelect }:
   const resolvedCreative = resolveCampaignCreative(campaign);
   const lines = resolvedCreative.text.split("\n");
   const condCount = campaign.ruleConditions.length;
+  const tagCount = campaign.ruleConditions.filter((c) => c.field === "product_tag").length;
+  const previewLabel = lines[0] || campaign.name || "Untitled";
+  const previewBody = lines.slice(1).join(" ").trim();
+  const previewClass = campaign.type === "banner" ? "campaign-card-swatch campaign-card-swatch--banner" : "campaign-card-swatch campaign-card-swatch--badge";
+  const toneClass = `campaign-card-tone campaign-card-tone--${resolvedCreative.stylePreset ?? "custom"}`;
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -32,11 +37,6 @@ export default function CampaignCard({ campaign, onEdit, isSelected, onSelect }:
     <article
       className={`campaign-card ${isSelected ? "selected" : ""}`}
       onClick={() => !isSelected && onEdit(campaign.id)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onEdit(campaign.id);
-      }}
     >
       {onSelect && (
         <div className="campaign-card-checkbox">
@@ -49,30 +49,25 @@ export default function CampaignCard({ campaign, onEdit, isSelected, onSelect }:
           />
         </div>
       )}
-      <div
-        className="campaign-card-preview"
-        style={{
-          backgroundColor: resolvedCreative.backgroundColor,
-          color: resolvedCreative.textColor,
-          borderColor: resolvedCreative.borderColor,
-        }}
-      >
-        {lines.map((line, i) => (
-          <div key={i} className={i === 0 ? "preview-headline" : "preview-body"}>
-            {line}
-          </div>
-        ))}
+      <div className="campaign-card-topline">
+        <span className={`status-badge status-badge--${campaign.status}`}>{campaign.status}</span>
+        <span className="campaign-card-topline-meta">{condCount} condition{condCount !== 1 ? "s" : ""}</span>
+      </div>
+      <div className="campaign-card-preview-shell">
+        <div className={`${previewClass} ${toneClass}`}>
+          <div className="preview-headline">{previewLabel}</div>
+          {campaign.type === "banner" && previewBody && (
+            <div className="preview-body">{previewBody}</div>
+          )}
+        </div>
       </div>
       <div className="campaign-card-name">{campaign.name || lines[0] || "Untitled"}</div>
       <div className="campaign-card-meta">
         <span className={`dot ${statusDot[campaign.status]}`} />
-        <span className="campaign-card-conditions">
-          {condCount} condition{condCount !== 1 ? "s" : ""}
-        </span>
-        {campaign.ruleConditions.some((c) => c.field === "product_tag") && (
+        <span className="campaign-card-type">{campaign.type}</span>
+        {tagCount > 0 && (
           <span className="campaign-card-tag">
-            {campaign.ruleConditions.filter((c) => c.field === "product_tag").length} tag
-            {campaign.ruleConditions.filter((c) => c.field === "product_tag").length !== 1 ? "s" : ""}
+            {tagCount} tag{tagCount !== 1 ? "s" : ""}
           </span>
         )}
       </div>
