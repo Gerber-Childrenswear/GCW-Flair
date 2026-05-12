@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from "react";
-import Topbar from "./components/Topbar";
 import Sidebar from "./components/Sidebar";
 import StatCards from "./components/StatCards";
 import QuickActions from "./components/QuickActions";
@@ -246,7 +245,6 @@ export default function App() {
   if (editor) {
     return (
       <div className="app-shell">
-        <Topbar activeView={activeView} />
         <div className="workspace">
           <Sidebar activeApp={activeView} onNavigate={handleNavigate} />
           <main className="content">
@@ -274,7 +272,6 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Topbar activeView={activeView} />
       <div className="workspace">
         <Sidebar activeApp={activeView} onNavigate={handleNavigate} />
 

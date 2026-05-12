@@ -141,7 +141,7 @@
 .workspace {
   display: grid;
   grid-template-columns: 232px 1fr;
-  min-height: calc(100vh - 56px);
+  min-height: 100vh;
   max-width: 1700px;
   margin: 0 auto;
   flex: 1;
