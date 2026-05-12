@@ -1,6 +1,6 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "eddcc50cfd2993fb148463092211a08a"
+client_id = "fa0f4bf0913da71db082ae6ac276f151"
 name = "GCW-Flair"
 application_url = "https://starsmerchant-particularly-initiatives-consolidation.trycloudflare.com"
 embedded = true
