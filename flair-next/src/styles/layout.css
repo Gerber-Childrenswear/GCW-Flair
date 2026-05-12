@@ -4,19 +4,13 @@
   min-height: 100vh;
 }
 
-/* ── Topbar ──────────────────────────────────────────────────────────────── */
+/* Embedded in Shopify Admin: hide internal faux topbar to avoid duplicate chrome. */
 .topbar {
-  height: 56px;
-  background: #1f1f1f;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 0 16px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  flex-shrink: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: none !important;
+  height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden;
 }
 
 .topbar-shopify {
