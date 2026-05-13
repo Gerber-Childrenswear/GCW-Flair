@@ -1,8 +1,32 @@
+import { useState } from "react";
+import SettingsColors from "./SettingsColors";
+
 type SettingsProps = {
   onNavigate: (view: string) => void;
 };
 
+// Sub-pages within Settings. "general" is Nick's existing settings content;
+// "colors" is the new brand palette manager (Decision #5 in the vision brief).
+type SettingsSubView = "general" | "colors";
+
 export default function Settings({ onNavigate }: SettingsProps) {
+  const [subView, setSubView] = useState<SettingsSubView>("general");
+
+  if (subView === "colors") {
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => setSubView("general")}
+          style={{ margin: "16px 32px 0", background: "transparent", border: "none", cursor: "pointer", color: "#667f8e", fontSize: 12 }}
+        >
+          ‹ Back to Settings
+        </button>
+        <SettingsColors />
+      </div>
+    );
+  }
+
   return (
     <div className="settings-page">
       <div className="settings-page-head">
@@ -23,6 +47,21 @@ export default function Settings({ onNavigate }: SettingsProps) {
               <button className="ghost-btn settings-action-btn" onClick={() => onNavigate("Overview")}>Disable</button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="settings-group">
+        <div className="settings-group-title">Brand</div>
+
+        <div className="settings-card-surface">
+          <button className="settings-row settings-row--nav" onClick={() => setSubView("colors")}>
+            <span className="settings-icon settings-icon--nav">◐</span>
+            <span className="settings-info">
+              <span className="settings-info-title">Colors</span>
+              <span className="settings-info-subtitle muted">Brand palette — the single source of truth for hex values. Styles consume these by name.</span>
+            </span>
+            <span className="settings-chevron">›</span>
+          </button>
         </div>
       </div>
 
