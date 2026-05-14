@@ -84,8 +84,79 @@ export default function SettingsColors() {
   const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
   const [deletingGroup, setDeletingGroup] = useState<ColorGroup | null>(null);
 
-  const visibleColors: Color[] =
+  // Search / sort / reorder
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"custom" | "name" | "hex" | "usage">("custom");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  // Visible list flows: group filter → search filter → sort.
+  // When sortBy === "custom" the row order reflects each color's sortOrder
+  // (preserved across sessions, mutated via reorder arrows).
+  const groupFiltered: Color[] =
     activeGroupId === "__all" ? colors : colors.filter((c) => c.groupId === activeGroupId);
+
+  const searchFiltered = search.trim()
+    ? groupFiltered.filter((c) => {
+        const q = search.trim().toLowerCase();
+        return c.name.toLowerCase().includes(q) || c.hex.toLowerCase().includes(q);
+      })
+    : groupFiltered;
+
+  const visibleColors: Color[] = [...searchFiltered].sort((a, b) => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    switch (sortBy) {
+      case "name":
+        return a.name.localeCompare(b.name) * dir;
+      case "hex":
+        return a.hex.localeCompare(b.hex) * dir;
+      case "usage": {
+        const aUsage = MOCK_USAGE[a.id]?.styles ?? 0;
+        const bUsage = MOCK_USAGE[b.id]?.styles ?? 0;
+        return (aUsage - bUsage) * dir;
+      }
+      case "custom":
+      default:
+        // Group first (when "__all"), then sortOrder within group.
+        if (a.groupId !== b.groupId) {
+          const aIdx = groups.findIndex((g) => g.id === a.groupId);
+          const bIdx = groups.findIndex((g) => g.id === b.groupId);
+          return (aIdx - bIdx) * dir;
+        }
+        return (a.sortOrder - b.sortOrder) * dir;
+    }
+  });
+
+  function handleSortClick(col: "custom" | "name" | "hex" | "usage") {
+    if (sortBy === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(col);
+      setSortDir("asc");
+    }
+  }
+
+  // Reorder a color within its group by swapping sortOrder with its neighbor.
+  // Only meaningful when sortBy === "custom" — sort buttons override the view
+  // order without mutating sortOrder.
+  function moveColor(colorId: string, direction: "up" | "down") {
+    const color = colors.find((c) => c.id === colorId);
+    if (!color) return;
+    const peers = colors
+      .filter((c) => c.groupId === color.groupId)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+    const idx = peers.findIndex((c) => c.id === colorId);
+    const newIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= peers.length) return;
+    const a = peers[idx];
+    const b = peers[newIdx];
+    setColors((prev) =>
+      prev.map((c) => {
+        if (c.id === a.id) return { ...c, sortOrder: b.sortOrder, updatedAt: new Date().toISOString() };
+        if (c.id === b.id) return { ...c, sortOrder: a.sortOrder, updatedAt: new Date().toISOString() };
+        return c;
+      }),
+    );
+  }
 
   function addAuditEntry(entry: Omit<ColorAuditEntry, "id" | "timestamp" | "actor">) {
     const e: ColorAuditEntry = {
@@ -406,13 +477,70 @@ export default function SettingsColors() {
 
         {/* Main panel — colors table + audit log */}
         <div>
+          {/* Search + sort context bar */}
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              alignItems: "center",
+              marginBottom: 12,
+            }}
+          >
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search colors by name or hex…"
+              style={{
+                flex: 1,
+                padding: "8px 12px",
+                border: "1px solid #e6e8ec",
+                borderRadius: 6,
+                fontSize: 13,
+                fontFamily: "inherit",
+              }}
+            />
+            {search && (
+              <button type="button" onClick={() => setSearch("")} style={ghostBtnStyle()}>
+                Clear
+              </button>
+            )}
+            <div style={{ fontSize: 12, color: "#667f8e", whiteSpace: "nowrap" }}>
+              Showing <strong>{visibleColors.length}</strong>
+              {visibleColors.length !== colors.length && (
+                <span style={{ color: "#99a9b4" }}> of {colors.length}</span>
+              )}
+            </div>
+          </div>
+
           <div className="panel" style={{ padding: 0, overflow: "hidden" }}>
             <div style={tableHeaderStyle}>
               <div>Swatch</div>
-              <div>Name</div>
-              <div>Hex</div>
-              <div>Used by</div>
-              <div style={{ textAlign: "right" }}>Actions</div>
+              <SortHeader label="Name" active={sortBy === "name"} dir={sortDir} onClick={() => handleSortClick("name")} />
+              <SortHeader label="Hex" active={sortBy === "hex"} dir={sortDir} onClick={() => handleSortClick("hex")} />
+              <SortHeader label="Used by" active={sortBy === "usage"} dir={sortDir} onClick={() => handleSortClick("usage")} />
+              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 6 }}>
+                {sortBy !== "custom" && (
+                  <button
+                    type="button"
+                    onClick={() => handleSortClick("custom")}
+                    title="Restore manual ordering"
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#667f8e",
+                      cursor: "pointer",
+                      fontSize: 10,
+                      fontFamily: "inherit",
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Manual
+                  </button>
+                )}
+                <span>Actions</span>
+              </div>
             </div>
             {visibleColors.map((color) => {
               const usage = MOCK_USAGE[color.id] ?? { styles: 0, instances: 0 };
@@ -427,7 +555,37 @@ export default function SettingsColors() {
                     <strong>{usage.styles}</strong> Style{usage.styles === 1 ? "" : "s"}
                     <div style={{ fontSize: 10, color: "#99a9b4" }}>{usage.instances} live instances</div>
                   </div>
-                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center" }}>
+                    {sortBy === "custom" && (() => {
+                      const peers = colors
+                        .filter((c) => c.groupId === color.groupId)
+                        .sort((a, b) => a.sortOrder - b.sortOrder);
+                      const idx = peers.findIndex((c) => c.id === color.id);
+                      const canUp = idx > 0;
+                      const canDown = idx >= 0 && idx < peers.length - 1;
+                      return (
+                        <span style={{ display: "inline-flex", gap: 2, marginRight: 4 }}>
+                          <button
+                            type="button"
+                            onClick={() => moveColor(color.id, "up")}
+                            disabled={!canUp}
+                            title="Move up in group"
+                            style={reorderBtnStyle(!canUp)}
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveColor(color.id, "down")}
+                            disabled={!canDown}
+                            title="Move down in group"
+                            style={reorderBtnStyle(!canDown)}
+                          >
+                            ▼
+                          </button>
+                        </span>
+                      );
+                    })()}
                     <button
                       type="button"
                       onClick={() => setColorForm({ mode: "edit", colorId: color.id })}
@@ -1533,6 +1691,46 @@ function ValidationSection({
   );
 }
 
+// ─── Sortable column header ──────────────────────────────────────────────────
+function SortHeader({
+  label,
+  active,
+  dir,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  dir: "asc" | "desc";
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        background: "transparent",
+        border: "none",
+        padding: 0,
+        margin: 0,
+        cursor: "pointer",
+        fontSize: 11,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        color: active ? "#002744" : "#667f8e",
+        fontWeight: 600,
+        fontFamily: "inherit",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        textAlign: "left",
+      }}
+    >
+      <span>{label}</span>
+      <span style={{ fontSize: 9, opacity: active ? 1 : 0.3 }}>{active ? (dir === "asc" ? "▲" : "▼") : "▲"}</span>
+    </button>
+  );
+}
+
 function ValidationRow({ hex, label, sub }: { hex: string; label: string; sub: string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 4px", fontSize: 13 }}>
@@ -1665,6 +1863,20 @@ function primaryBtnStyle(disabled = false) {
     fontFamily: "inherit",
     fontWeight: 600,
     opacity: disabled ? 0.7 : 1,
+  };
+}
+
+function reorderBtnStyle(disabled = false) {
+  return {
+    background: "transparent",
+    border: "1px solid #e6e8ec",
+    borderRadius: 4,
+    padding: "2px 6px",
+    fontSize: 9,
+    color: disabled ? "#cfd4d9" : "#667f8e",
+    cursor: disabled ? "not-allowed" : "pointer",
+    fontFamily: "inherit",
+    lineHeight: 1,
   };
 }
 
