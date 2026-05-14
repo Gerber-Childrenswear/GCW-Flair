@@ -11,8 +11,13 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-4);
+  flex-wrap: nowrap;
   border-bottom: 1px solid var(--border-subtle);
   padding-bottom: var(--space-5);
+}
+
+.campaign-list-actions {
+  flex-shrink: 0;
 }
 
 .campaign-list-actions {
@@ -30,14 +35,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: var(--space-4);
+  flex-wrap: nowrap;
 }
 
 .layout-library-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-3);
+  flex-shrink: 0;
 }
 
 .layout-library-context {

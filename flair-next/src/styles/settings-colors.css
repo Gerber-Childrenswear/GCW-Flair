@@ -19,9 +19,18 @@
 .sc-page-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: var(--space-6);
   margin-bottom: var(--space-2);
+  flex-wrap: nowrap;
+}
+
+.sc-page-head > div:first-child {
+  min-width: 0;
+}
+
+.sc-page-actions {
+  flex-shrink: 0;
 }
 
 .sc-eyebrow {

@@ -8,10 +8,18 @@
 
 .analytics-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-3);
+}
+
+.analytics-header > div:first-child {
+  min-width: 0;
+}
+
+.analytics-period-select {
+  flex-shrink: 0;
 }
 
 .analytics-title {
