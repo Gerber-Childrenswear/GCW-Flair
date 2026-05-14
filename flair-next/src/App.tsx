@@ -285,7 +285,7 @@ export default function App() {
                 <>
                   <span className="workspace-pill">{allCampaigns.filter((c) => c.status === "live").length} live</span>
                   <button className="ghost-btn" onClick={() => handleAdd("badge")}>+ New badge</button>
-                  <button className="primary-btn" onClick={() => handleAdd("banner")}>+ New banner</button>
+                  <button className="ghost-btn" onClick={() => handleAdd("banner")}>+ New banner</button>
                 </>
               )}
             </div>
