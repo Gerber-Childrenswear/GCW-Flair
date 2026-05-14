@@ -14,7 +14,7 @@
 }
 
 .topbar-shopify {
-  color: #ffffff;
+  color: var(--text-inverse);
   font-size: 14px;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -28,13 +28,13 @@
 
 .topbar-search-shell {
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 1px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.08);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 10px;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
 }
 
 .topbar-search {
@@ -42,7 +42,7 @@
   height: 100%;
   border: 0;
   background: transparent;
-  color: #ffffff;
+  color: var(--text-inverse);
   padding: 0;
   font-size: 13px;
 }
@@ -67,7 +67,7 @@
   font-size: 11px;
   font-weight: 600;
   padding: 2px 6px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: rgba(255,255,255,0.08);
   flex-shrink: 0;
 }
@@ -76,7 +76,7 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .topbar-action-btn {
@@ -105,9 +105,9 @@
 .topbar-avatar {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
-  background: #2fd15a;
-  color: #0f1720;
+  border-radius: 0;
+  background: var(--color-sea-nymph);
+  color: var(--color-oxford-blue);
   font-size: 11px;
   font-weight: 800;
   display: inline-flex;
@@ -143,11 +143,11 @@
 
 .sidebar {
   border-right: 1px solid var(--border-subtle);
-  background: #f6f6f7;
-  padding: 14px 12px 18px;
+  background: var(--bg-muted);
+  padding: var(--space-3) var(--space-3) var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-3);
 }
 
 .side-brand {
@@ -161,12 +161,12 @@
   font-family: var(--font-sans);
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: #202223;
+  color: var(--text-primary);
 }
 
 .side-brand p {
   margin: 0;
-  color: #6d7175;
+  color: var(--text-secondary);
   font-size: 11px;
   font-weight: 500;
   line-height: 1.35;
@@ -174,7 +174,7 @@
 
 .side-label,
 .side-footer {
-  color: #6d7175;
+  color: var(--text-secondary);
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -197,9 +197,9 @@
   text-align: left;
   border: 0;
   background: transparent;
-  color: #202223;
+  color: var(--text-primary);
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-weight: 500;
   font-size: 13px;
@@ -208,43 +208,43 @@
 }
 
 .side-link:hover {
-  background: #edeeef;
+  background: var(--bg-page);
 }
 
 .side-link.active {
-  background: #ffffff;
-  box-shadow: 0 0 0 1px rgba(138, 141, 145, 0.16);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-card);
   font-weight: 600;
 }
 
 .side-link-icon {
   width: 16px;
   height: 16px;
-  color: #5c6b82;
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
 .side-link.active .side-link-icon {
-  color: #202223;
+  color: var(--text-primary);
 }
 
 .content {
-  padding: 22px 28px;
+  padding: var(--space-6) var(--space-8);
   display: grid;
-  gap: var(--space-4);
-  max-width: 1180px;
+  gap: var(--space-6);
+  max-width: 1280px;
 }
 
 .workspace-head {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: none;
-  padding: 14px 16px;
+  padding: var(--space-3) var(--space-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .workspace-kicker {
@@ -258,16 +258,17 @@
 
 .workspace-head h1 {
   margin: 4px 0 0;
-  font-size: 22px;
-  font-family: var(--font-sans);
+  font-size: 28px;
+  font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
+  color: var(--color-oxford-blue);
 }
 
 .workspace-head-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
@@ -276,7 +277,7 @@
   border-radius: 999px;
   border: 1px solid var(--border-strong);
   color: var(--text-primary);
-  background: #f6f6f7;
+  background: var(--bg-muted);
   font-size: 12px;
   font-weight: 700;
 }
@@ -285,11 +286,13 @@
   margin: 0;
   font-size: 28px;
   font-family: var(--font-display);
+  font-weight: 600;
   letter-spacing: -0.02em;
+  color: var(--color-oxford-blue);
 }
 
 .page-head p {
-  margin: 8px 0 0;
+  margin: var(--space-2) 0 0;
   color: var(--text-secondary);
   max-width: 720px;
 }

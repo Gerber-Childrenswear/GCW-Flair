@@ -54,7 +54,7 @@
 
 .ghost-btn:active {
   background: var(--color-oxford-blue);
-  color: #ffffff;
+  color: var(--text-inverse);
   border-color: var(--color-oxford-blue);
 }
 
@@ -72,7 +72,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  color: #2f3743;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -110,16 +110,16 @@
 }
 
 .help-main li {
-  padding: 12px;
+  padding: var(--space-3);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  background: #fafbfb;
+  background: var(--bg-page);
   color: var(--text-primary);
   font-weight: 600;
 }
 
 .promo-panel {
-  background: #fafbfb;
+  background: var(--bg-page);
   border-color: var(--border-subtle);
 }
 
@@ -167,13 +167,13 @@
 
 .campaign-hub-item {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .campaign-hub-split {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .campaign-hub-format {
@@ -182,13 +182,13 @@
   text-align: left;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  background: #fafbfb;
-  padding: 14px;
+  background: var(--bg-page);
+  padding: var(--space-3);
   cursor: pointer;
 }
 
 .campaign-hub-format strong {
-  font-size: 26px;
+  font-size: 22px;
   font-family: var(--font-display);
   color: var(--color-oxford-blue);
 }
@@ -203,7 +203,7 @@
 
 .global-styles-default {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .global-styles-default-swatch,
@@ -211,7 +211,7 @@
   min-height: 92px;
   border: 1px solid;
   border-radius: var(--radius-md);
-  padding: 18px;
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -232,7 +232,7 @@
 
 .global-styles-preset-card {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .global-styles-bottom-grid {
@@ -241,7 +241,7 @@
 
 .global-styles-list {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .global-styles-list-row {
@@ -256,13 +256,13 @@
 .global-styles-color-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 12px;
+  gap: var(--space-3);
 }
 
 .global-styles-color-chip {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   color: var(--text-primary);
   font-weight: 500;
 }
@@ -271,73 +271,75 @@
   width: 12px;
   height: 12px;
   border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(0, 39, 68, 0.08);
 }
 
+/* Swatches preview the brand palette — these intentionally render the brand
+   colors directly via tokens so visual changes to tokens.css propagate here. */
 .global-styles-swatch--solid-dark {
-  background: #002744;
-  color: #ffffff;
-  border-color: #002744;
+  background: var(--color-oxford-blue);
+  color: var(--text-inverse);
+  border-color: var(--color-oxford-blue);
 }
 
 .global-styles-swatch--solid-red {
-  background: #bf360c;
-  color: #ffffff;
-  border-color: #bf360c;
+  background: var(--color-coral-sale);
+  color: var(--text-inverse);
+  border-color: var(--color-coral-sale);
 }
 
 .global-styles-swatch--outline-light {
-  background: #f9f5f3;
-  color: #002744;
-  border-color: #e6e8ec;
+  background: var(--color-spring-wood);
+  color: var(--color-oxford-blue);
+  border-color: var(--border-subtle);
 }
 
 .global-styles-swatch--soft-green {
-  background: #86b3a1;
-  color: #ffffff;
-  border-color: #86b3a1;
+  background: var(--color-sea-nymph);
+  color: var(--text-inverse);
+  border-color: var(--color-sea-nymph);
 }
 
 .global-styles-swatch--solid-orange {
-  background: #f4a261;
-  color: #ffffff;
-  border-color: #f4a261;
+  background: var(--color-sandy-brown);
+  color: var(--text-inverse);
+  border-color: var(--color-sandy-brown);
 }
 
 .global-styles-swatch--solid-blue {
-  background: #85b7ea;
-  color: #002744;
-  border-color: #85b7ea;
+  background: var(--color-jordy-blue);
+  color: var(--color-oxford-blue);
+  border-color: var(--color-jordy-blue);
 }
 
 .global-styles-swatch--solid-yellow {
-  background: #f2c94c;
-  color: #002744;
-  border-color: #f2c94c;
+  background: var(--color-ronchi);
+  color: var(--color-oxford-blue);
+  border-color: var(--color-ronchi);
 }
 
 .global-styles-swatch--soft-pink {
-  background: #f28c82;
-  color: #ffffff;
-  border-color: #f28c82;
+  background: var(--color-geraldine);
+  color: var(--text-inverse);
+  border-color: var(--color-geraldine);
 }
 
 .global-styles-swatch--custom {
-  background: #f8fafc;
-  color: #002744;
-  border-color: #d5dbe3;
+  background: var(--bg-page);
+  color: var(--color-oxford-blue);
+  border-color: var(--border-strong);
 }
 
-.global-styles-color-dot--oxford-blue { background: #002744; }
-.global-styles-color-dot--jordy-blue { background: #85b7ea; }
-.global-styles-color-dot--hawkes-blue { background: #cee2f7; }
-.global-styles-color-dot--spring-wood { background: #f9f5f3; }
-.global-styles-color-dot--ronchi { background: #f2c94c; }
-.global-styles-color-dot--sandy-brown { background: #f4a261; }
-.global-styles-color-dot--geraldine { background: #f28c82; }
-.global-styles-color-dot--sea-nymph { background: #86b3a1; }
-.global-styles-color-dot--navy-80 { background: #335369; }
-.global-styles-color-dot--navy-60 { background: #667f8e; }
+.global-styles-color-dot--oxford-blue { background: var(--color-oxford-blue); }
+.global-styles-color-dot--jordy-blue { background: var(--color-jordy-blue); }
+.global-styles-color-dot--hawkes-blue { background: var(--color-hawkes-blue); }
+.global-styles-color-dot--spring-wood { background: var(--color-spring-wood); }
+.global-styles-color-dot--ronchi { background: var(--color-ronchi); }
+.global-styles-color-dot--sandy-brown { background: var(--color-sandy-brown); }
+.global-styles-color-dot--geraldine { background: var(--color-geraldine); }
+.global-styles-color-dot--sea-nymph { background: var(--color-sea-nymph); }
+.global-styles-color-dot--navy-80 { background: var(--color-navy-80); }
+.global-styles-color-dot--navy-60 { background: var(--color-navy-60); }
 
 @media (max-width: 1100px) {
   .campaign-hub-grid,
