@@ -69,15 +69,8 @@
   color: var(--color-oxford-blue);
 }
 
-/* ─── Two-column layout: groups sidebar + main ────────────────────────────── */
-
-.sc-layout {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: var(--space-6);
-  margin-top: var(--space-6);
-  align-items: start;
-}
+/* Two-column layout replaced by Bootstrap .row + .col-lg-3 (sidebar) +
+   .col-lg-9 (main). See SettingsColors.tsx. */
 
 /* ─── Groups sidebar ──────────────────────────────────────────────────────── */
 

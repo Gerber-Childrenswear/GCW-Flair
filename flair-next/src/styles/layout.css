@@ -319,21 +319,8 @@
   max-width: 720px;
 }
 
-.stats-grid,
-.quick-grid,
-.help-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(260px, 1fr));
-  gap: var(--space-4);
-}
-
-.quick-grid {
-  grid-template-columns: repeat(3, minmax(220px, 1fr));
-}
-
-.help-grid {
-  grid-template-columns: 2fr 1fr;
-}
+/* .stats-grid / .quick-grid / .help-grid replaced by Bootstrap .row + .col-*
+   on Overview. See StatCards.tsx, QuickActions.tsx for the migration. */
 
 @media (max-width: 1100px) {
   .workspace {
@@ -344,12 +331,6 @@
   .sidebar {
     border-right: 0;
     border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .stats-grid,
-  .quick-grid,
-  .help-grid {
-    grid-template-columns: 1fr;
   }
 
   .workspace-head {

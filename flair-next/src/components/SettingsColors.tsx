@@ -321,31 +321,33 @@ export default function SettingsColors() {
   }
 
   return (
-    <div className="sc-page">
-      <div className="sc-page-head">
-        <div>
-          <div className="sc-eyebrow">Settings · Colors</div>
-          <h1 className="sc-title">Colors</h1>
-          <p className="sc-deck">
-            The single source of truth for brand colors. Hex values are entered here only — Style editors
-            across the app consume these by name. Renames and recolors cascade automatically; deletions
-            require transfer-or-replace.
-          </p>
-        </div>
-        <div className="sc-page-actions">
-          <button type="button" onClick={handleExportJson} className="sc-btn sc-btn--ghost">
-            Export JSON
-          </button>
-          <button type="button" onClick={() => setShowImport(true)} className="sc-btn sc-btn--ghost">
-            Import JSON
-          </button>
-          <button type="button" onClick={() => setColorForm({ mode: "add" })} className="sc-btn sc-btn--primary">
-            + Add color
-          </button>
+    <div className="row g-4">
+      <div className="col-12">
+        <div className="sc-page-head">
+          <div>
+            <div className="sc-eyebrow">Settings · Colors</div>
+            <h1 className="sc-title">Colors</h1>
+            <p className="sc-deck">
+              The single source of truth for brand colors. Hex values are entered here only — Style editors
+              across the app consume these by name. Renames and recolors cascade automatically; deletions
+              require transfer-or-replace.
+            </p>
+          </div>
+          <div className="sc-page-actions">
+            <button type="button" onClick={handleExportJson} className="sc-btn sc-btn--ghost">
+              Export JSON
+            </button>
+            <button type="button" onClick={() => setShowImport(true)} className="sc-btn sc-btn--ghost">
+              Import JSON
+            </button>
+            <button type="button" onClick={() => setColorForm({ mode: "add" })} className="sc-btn sc-btn--primary">
+              + Add color
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="sc-layout">
+      <div className="col-12 col-lg-3">
         {/* Groups sidebar */}
         <aside className="panel sc-sidebar">
           <div className="sc-sidebar-label">Groups</div>
@@ -387,7 +389,9 @@ export default function SettingsColors() {
             </button>
           )}
         </aside>
+      </div>
 
+      <div className="col-12 col-lg-9">
         {/* Main panel */}
         <div>
           {/* Toolbar */}
@@ -497,7 +501,7 @@ export default function SettingsColors() {
         </div>
       </div>
 
-      {/* ─── Modals ────────────────────────────────────────────────────── */}
+      {/* ─── Modals (outside grid) ─────────────────────────────────────── */}
 
       {colorForm?.mode === "add" && (
         <ColorFormModal
