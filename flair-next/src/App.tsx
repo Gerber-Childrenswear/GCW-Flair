@@ -6,6 +6,10 @@ import CampaignList from "./components/CampaignList";
 import CampaignEditor from "./components/CampaignEditor";
 import LayoutLibrary from "./components/LayoutLibrary";
 import Settings from "./components/Settings";
+import GlobalStyles from "./components/GlobalStyles";
+import AutomationCenter from "./components/AutomationCenter";
+import CountdownManager from "./components/CountdownManager";
+import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import { generateId, mockBadges, mockBanners } from "./data/mock-campaigns";
 import { getDefaultDesignSystemConfig, getDesignPresetById } from "./data/design-system";
 import { buildCampaignPlacements, type LayoutDefinition } from "./data/layout-library";
@@ -332,6 +336,33 @@ export default function App() {
               />
             )
           )}
+
+          {activeView === "Global Styles" && <GlobalStyles />}
+
+          {activeView === "Campaigns" && (
+            <div className="row g-4">
+              <div className="col-12">
+                <article className="panel">
+                  <h2>Campaigns</h2>
+                  <p style={{ color: "var(--text-secondary)", marginTop: "var(--space-3)" }}>
+                    Time-bounded promotional bundles that group Badges, Banners, and Countdowns under one
+                    launch. Soft-linked to the broader Onsite Campaigns program via a free-text{" "}
+                    <code>associated_campaign</code> field.
+                  </p>
+                  <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: "var(--space-2)" }}>
+                    Surface coming next — architectural decisions are in the brief
+                    (<code>Projects/2026-05-flair-app-redesign/_brief.md</code>, Decision #3).
+                  </p>
+                </article>
+              </div>
+            </div>
+          )}
+
+          {activeView === "Countdowns" && <CountdownManager campaigns={allCampaigns} />}
+
+          {activeView === "Automations" && <AutomationCenter campaigns={allCampaigns} />}
+
+          {activeView === "Analytics" && <AnalyticsDashboard campaigns={allCampaigns} />}
 
           {activeView === "Settings" && <Settings onNavigate={handleNavigate} />}
         </main>
