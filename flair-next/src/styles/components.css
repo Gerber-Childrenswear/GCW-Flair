@@ -136,10 +136,18 @@
   color: var(--text-primary);
 }
 
+/* Page-level notice strip. Rendered as a .panel.placeholder-msg from
+   App.tsx; overrides the default .panel padding so it reads as a compact
+   notice instead of a full content card. Same height/treatment on every
+   page. */
 .placeholder-msg {
-  color: var(--text-secondary);
-  font-size: 15px;
-  margin-top: var(--space-2);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--color-ronchi);
+  background: var(--bg-page);
+  margin: 0;
 }
 
 .campaign-hub,
