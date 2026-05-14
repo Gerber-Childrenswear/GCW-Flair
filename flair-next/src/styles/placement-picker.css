@@ -170,7 +170,7 @@
 .device-scope-btn {
   padding: 3px 10px;
   border: 1px solid #cbd5e1;
-  border-radius: 4px;
+  border-radius: 0;
   font-size: 11px;
   font-weight: 500;
   background: #fff;
