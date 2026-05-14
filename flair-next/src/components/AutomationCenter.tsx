@@ -66,28 +66,32 @@ export default function AutomationCenter({ campaigns }: Props) {
   ] as const;
 
   return (
-    <section className="automation-center">
-      <div className="automation-header">
+    <section className="row g-4">
+      <div className="col-12 automation-header">
         <h1>Automations</h1>
         <p>Autopilot controls for scheduling, stacking, grouping, and target-based promotions.</p>
       </div>
 
-      <div className="automation-kpis">
-        <article className="panel automation-kpi">
+      <div className="col-12 col-md-4">
+        <article className="panel automation-kpi h-100">
           <p className="automation-kpi-label">Active Flows</p>
           <h3>{rows.filter((r) => r.state === "healthy").length}</h3>
         </article>
-        <article className="panel automation-kpi">
+      </div>
+      <div className="col-12 col-md-4">
+        <article className="panel automation-kpi h-100">
           <p className="automation-kpi-label">Queued Campaigns</p>
           <h3>{scheduled.length}</h3>
         </article>
-        <article className="panel automation-kpi">
+      </div>
+      <div className="col-12 col-md-4">
+        <article className="panel automation-kpi h-100">
           <p className="automation-kpi-label">Live Promotions</p>
           <h3>{live.length}</h3>
         </article>
       </div>
 
-      <div className="panel automation-table-wrap">
+      <div className="col-12 panel automation-table-wrap">
         <table className="automation-table">
           <thead>
             <tr>

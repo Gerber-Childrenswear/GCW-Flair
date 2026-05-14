@@ -38,20 +38,22 @@ export default function CountdownManager({ campaigns }: Props) {
     .sort((a, b) => a.remaining - b.remaining);
 
   return (
-    <section className="countdown-manager">
-      <div className="countdown-header">
+    <section className="row g-4">
+      <div className="col-12 countdown-header">
         <h1>Countdown Timers</h1>
         <p>Manage urgency bars and end-of-sale messaging for live and scheduled promotions.</p>
       </div>
 
       {countdowns.length === 0 ? (
-        <div className="panel empty-state">
-          <p>No active timers yet. Enable countdown in a campaign schedule to add one.</p>
+        <div className="col-12">
+          <div className="panel empty-state">
+            <p>No active timers yet. Enable countdown in a campaign schedule to add one.</p>
+          </div>
         </div>
       ) : (
-        <div className="countdown-grid">
-          {countdowns.map((timer) => (
-            <article key={timer.id} className="panel countdown-card">
+        countdowns.map((timer) => (
+          <div key={timer.id} className="col-12 col-md-6 col-lg-4">
+            <article className="panel countdown-card h-100">
               <div className="countdown-card-head">
                 <h3>{timer.name}</h3>
                 <span className={`timer-pill ${timer.urgency ? "urgent" : "stable"}`}>
@@ -62,8 +64,8 @@ export default function CountdownManager({ campaigns }: Props) {
               <div className="countdown-metric">{timer.label}: {formatWindow(timer.remaining)}</div>
               <p className="countdown-meta">Ends at {new Date(timer.endsAt).toLocaleString()}</p>
             </article>
-          ))}
-        </div>
+          </div>
+        ))
       )}
     </section>
   );

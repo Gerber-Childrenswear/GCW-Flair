@@ -96,9 +96,9 @@ export default function AnalyticsDashboard({ campaigns }: { campaigns: Campaign[
   const fmtCurrency = (n: number) => `$${n.toLocaleString()}`;
 
   return (
-    <div className="analytics-dashboard">
+    <div className="row g-4">
       {/* Header */}
-      <div className="analytics-header">
+      <div className="col-12 analytics-header">
         <div>
           <h1 className="analytics-title">Analytics</h1>
           <p className="analytics-subtitle">Campaign performance overview</p>
@@ -117,31 +117,43 @@ export default function AnalyticsDashboard({ campaigns }: { campaigns: Campaign[
       </div>
 
       {/* KPI summary row */}
-      <div className="analytics-kpi-row">
-        <div className="analytics-kpi">
-          <div className="kpi-label">Impressions</div>
-          <div className="kpi-value">{fmt(totals.impressions)}</div>
-        </div>
-        <div className="analytics-kpi">
-          <div className="kpi-label">Clicks</div>
-          <div className="kpi-value">{fmt(totals.clicks)}</div>
-        </div>
-        <div className="analytics-kpi">
-          <div className="kpi-label">Avg. CTR</div>
-          <div className="kpi-value">{totalCtr}%</div>
-        </div>
-        <div className="analytics-kpi">
-          <div className="kpi-label">Add-to-Carts</div>
-          <div className="kpi-value">{fmt(totals.atcs)}</div>
-        </div>
-        <div className="analytics-kpi">
-          <div className="kpi-label">Attributed Revenue</div>
-          <div className="kpi-value">{fmtCurrency(totals.revenue)}</div>
+      <div className="col-12">
+        <div className="row g-3">
+          <div className="col-6 col-md-4 col-xl">
+            <div className="analytics-kpi h-100">
+              <div className="kpi-label">Impressions</div>
+              <div className="kpi-value">{fmt(totals.impressions)}</div>
+            </div>
+          </div>
+          <div className="col-6 col-md-4 col-xl">
+            <div className="analytics-kpi h-100">
+              <div className="kpi-label">Clicks</div>
+              <div className="kpi-value">{fmt(totals.clicks)}</div>
+            </div>
+          </div>
+          <div className="col-6 col-md-4 col-xl">
+            <div className="analytics-kpi h-100">
+              <div className="kpi-label">Avg. CTR</div>
+              <div className="kpi-value">{totalCtr}%</div>
+            </div>
+          </div>
+          <div className="col-6 col-md-6 col-xl">
+            <div className="analytics-kpi h-100">
+              <div className="kpi-label">Add-to-Carts</div>
+              <div className="kpi-value">{fmt(totals.atcs)}</div>
+            </div>
+          </div>
+          <div className="col-12 col-md-6 col-xl">
+            <div className="analytics-kpi h-100">
+              <div className="kpi-label">Attributed Revenue</div>
+              <div className="kpi-value">{fmtCurrency(totals.revenue)}</div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Impression bar chart (top 5) */}
-      <div className="analytics-chart-section">
+      <div className="col-12 analytics-chart-section">
         <h3 className="analytics-section-title">Top Campaigns by Impressions</h3>
         <div className="analytics-bar-chart">
           {metrics
@@ -165,7 +177,7 @@ export default function AnalyticsDashboard({ campaigns }: { campaigns: Campaign[
       </div>
 
       {/* Data table */}
-      <div className="analytics-table-section">
+      <div className="col-12 analytics-table-section">
         <h3 className="analytics-section-title">All Campaigns</h3>
         <div className="analytics-table-wrap">
           <table className="analytics-table">

@@ -72,8 +72,8 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onOpenLay
   };
 
   return (
-    <div className="campaign-list">
-      <div className="campaign-list-head">
+    <div className="row g-4">
+      <div className="col-12 campaign-list-head">
         <div className="campaign-list-actions">
           <button className="ghost-btn" onClick={onOpenLayouts}>
             Layouts
@@ -103,7 +103,7 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onOpenLay
 
       </div>
 
-      <div className="campaign-toolbar">
+      <div className="col-12 campaign-toolbar">
         <div className="filter-pills">
           {statusFilters.map((f) => (
             <button
@@ -137,7 +137,7 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onOpenLay
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="bulk-actions-bar">
+        <div className="col-12 bulk-actions-bar">
           <div className="bulk-selection-info">
             <strong>{selectedIds.size}</strong> campaign(s) selected
           </div>
@@ -165,41 +165,41 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onOpenLay
       )}
 
       {published.length > 0 && (
-        <>
+        <div className="col-12">
           <h3 className="section-divider">Published <span className="section-divider-count">{published.length}</span></h3>
           <div className={layout === "grid" ? gridClass : "campaign-list-view"}>
             {published.map((c) => (
-              <CampaignCard 
-                key={c.id} 
-                campaign={c} 
-                onEdit={onEdit} 
+              <CampaignCard
+                key={c.id}
+                campaign={c}
+                onEdit={onEdit}
                 isSelected={selectedIds.has(c.id)}
                 onSelect={handleSelectOne}
               />
             ))}
           </div>
-        </>
+        </div>
       )}
 
       {unpublished.length > 0 && (
-        <>
+        <div className="col-12">
           <h3 className="section-divider">Unpublished <span className="section-divider-count">{unpublished.length}</span></h3>
           <div className={layout === "grid" ? gridClass : "campaign-list-view"}>
             {unpublished.map((c) => (
-              <CampaignCard 
-                key={c.id} 
-                campaign={c} 
-                onEdit={onEdit} 
+              <CampaignCard
+                key={c.id}
+                campaign={c}
+                onEdit={onEdit}
                 isSelected={selectedIds.has(c.id)}
                 onSelect={handleSelectOne}
               />
             ))}
           </div>
-        </>
+        </div>
       )}
 
       {filtered.length === 0 && (
-        <div className="empty-state">
+        <div className="col-12 empty-state">
           <p>No {label.toLowerCase()} found.</p>
           <button className="primary-btn" onClick={onAdd}>
             + Create your first {type}
