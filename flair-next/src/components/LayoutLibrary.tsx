@@ -98,8 +98,8 @@ export default function LayoutLibrary({ type, onBack, onSelectLayout }: Props) {
   }
 
   return (
-    <div className="layout-library">
-      <div className="layout-library-head">
+    <div className="row g-4">
+      <div className="col-12 layout-library-head">
         <button className="ghost-btn layout-library-back" onClick={onBack}>
           ← {typeLabel}s
         </button>
@@ -109,9 +109,9 @@ export default function LayoutLibrary({ type, onBack, onSelectLayout }: Props) {
         </div>
       </div>
 
-      <div className={`layout-library-grid layout-library-grid--${type}`}>
-        {layouts.map((layout) => (
-          <article key={layout.id} className="layout-card panel">
+      {layouts.map((layout) => (
+        <div key={layout.id} className="col-12 col-md-6 col-xl-4">
+          <article className="layout-card panel h-100">
             <div className="layout-card-topline">
               <div className="layout-card-title-wrap">
                 <span className="layout-card-icon" aria-hidden="true">▣</span>
@@ -155,12 +155,14 @@ export default function LayoutLibrary({ type, onBack, onSelectLayout }: Props) {
               </button>
             </div>
           </article>
-        ))}
-      </div>
+        </div>
+      ))}
 
-      <p className="layout-library-footer">
-        Start from Flair-style layout patterns, then extend them with custom placement logic, richer page coverage, and additional layout variants.
-      </p>
+      <div className="col-12">
+        <p className="layout-library-footer">
+          Start from Flair-style layout patterns, then extend them with custom placement logic, richer page coverage, and additional layout variants.
+        </p>
+      </div>
     </div>
   );
 }
