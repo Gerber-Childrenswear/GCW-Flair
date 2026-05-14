@@ -293,10 +293,10 @@ export default function App() {
 
           {notice && <div className="panel placeholder-msg">{notice}</div>}
           {activeView === "Overview" && (
-            <>
+            <div className="row g-4">
               <StatCards campaigns={allCampaigns} onViewSection={handleNavigate} />
               <QuickActions onNavigate={handleNavigate} />
-                          </>
+            </div>
           )}
 
           {activeView === "Badges" && (

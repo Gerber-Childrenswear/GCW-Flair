@@ -25,7 +25,7 @@ export default function StatCards({ campaigns, onViewSection }: Props) {
   ];
 
   return (
-    <section className="row g-4">
+    <>
       {statCards.map((card) => (
         <div key={card.title} className="col-12 col-lg-6">
           <article className="panel stat-panel h-100">
@@ -55,6 +55,6 @@ export default function StatCards({ campaigns, onViewSection }: Props) {
           </article>
         </div>
       ))}
-    </section>
+    </>
   );
 }

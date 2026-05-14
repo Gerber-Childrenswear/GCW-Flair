@@ -42,7 +42,7 @@ export default function QuickActions({ onNavigate }: QuickActionsProps) {
   };
 
   return (
-    <section className="row g-4">
+    <>
       {quickActions.map((item) => (
         <div key={item.title} className="col-12 col-md-6 col-lg-4">
           <article className="panel quick-panel h-100">
@@ -54,6 +54,6 @@ export default function QuickActions({ onNavigate }: QuickActionsProps) {
           </article>
         </div>
       ))}
-    </section>
+    </>
   );
 }
