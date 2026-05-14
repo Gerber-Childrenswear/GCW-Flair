@@ -253,6 +253,34 @@
   border-bottom: 1px solid var(--bg-muted);
 }
 
+/* Group divider row — appears between groups in the All colors view so
+   users can see where one group ends and the next begins. Also clarifies
+   why the up/down arrows are disabled on the first/last row of a group. */
+.sc-table-group-divider {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-oxford-blue);
+  font-weight: 600;
+}
+
+.sc-table-group-divider:first-child {
+  border-top: none;
+}
+
+.sc-table-group-divider-count {
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
 .sc-table-row:last-child {
   border-bottom: none;
 }

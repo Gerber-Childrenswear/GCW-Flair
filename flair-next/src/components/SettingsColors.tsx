@@ -6,7 +6,7 @@
 //
 // Styling lives in src/styles/settings-colors.css (sc-* class prefix).
 
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { SEED_COLOR_GROUPS, SEED_COLORS, SEED_AUDIT_LOG } from "../data/color-palette";
 import type { Color, ColorAuditEntry, ColorGroup, ImportValidationResult } from "../types/color";
 
@@ -449,10 +449,31 @@ export default function SettingsColors() {
                 <span>Actions</span>
               </div>
             </div>
-            {visibleColors.map((color) => {
+            {visibleColors.map((color, i) => {
               const usage = MOCK_USAGE[color.id] ?? { styles: 0, instances: 0 };
+              // In the All-colors view (with custom sort), insert a group divider
+              // before each group's first color. Tells the user which group each
+              // color belongs to and clarifies why the up/down arrows are
+              // disabled on the first/last row of a group.
+              const prev = i > 0 ? visibleColors[i - 1] : null;
+              const showGroupDivider =
+                activeGroupId === "__all" &&
+                sortBy === "custom" &&
+                (i === 0 || prev?.groupId !== color.groupId);
+              const groupName =
+                groups.find((g) => g.id === color.groupId)?.name ?? "Ungrouped";
+              const groupCount = colors.filter((c) => c.groupId === color.groupId).length;
               return (
-                <div key={color.id} className="sc-table-row">
+                <React.Fragment key={color.id}>
+                  {showGroupDivider && (
+                    <div className="sc-table-group-divider">
+                      <span className="sc-table-group-divider-name">{groupName}</span>
+                      <span className="sc-table-group-divider-count">
+                        {groupCount} color{groupCount === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                  )}
+                  <div className="sc-table-row">
                   <ColorSwatch hex={color.hex} />
                   <div className="sc-table-name">{color.name}</div>
                   <div className="sc-table-hex">{color.hex.toUpperCase()}</div>
@@ -478,7 +499,8 @@ export default function SettingsColors() {
                     <button type="button" onClick={() => setColorForm({ mode: "edit", colorId: color.id })} className="sc-row-action">Edit</button>
                     <button type="button" onClick={() => setDeletingColor(color)} className="sc-row-action sc-row-action--danger">Delete</button>
                   </div>
-                </div>
+                  </div>
+                </React.Fragment>
               );
             })}
           </div>
