@@ -47,6 +47,10 @@ function generateAuditId(): string {
   return `audit_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function generateGroupId(): string {
+  return `grp_${Math.random().toString(36).slice(2, 8)}`;
+}
+
 function ColorSwatch({ hex, size = 24 }: { hex: string; size?: number }) {
   return (
     <span
@@ -66,15 +70,19 @@ function ColorSwatch({ hex, size = 24 }: { hex: string; size?: number }) {
 
 export default function SettingsColors() {
   const [colors, setColors] = useState<Color[]>(SEED_COLORS);
-  const [groups] = useState<ColorGroup[]>(SEED_COLOR_GROUPS); // editing groups lands in a later slice
+  const [groups, setGroups] = useState<ColorGroup[]>(SEED_COLOR_GROUPS);
   const [auditLog, setAuditLog] = useState<ColorAuditEntry[]>(SEED_AUDIT_LOG);
   const [activeGroupId, setActiveGroupId] = useState<string>("__all");
 
-  // Modal state — "form" handles both Add and Edit; deletingColor drives the
-  // forced-transfer-or-replace flow; showImport drives the JSON import modal.
+  // Modal state for colors
   const [colorForm, setColorForm] = useState<{ mode: "add" | "edit"; colorId?: string } | null>(null);
   const [deletingColor, setDeletingColor] = useState<Color | null>(null);
   const [showImport, setShowImport] = useState(false);
+
+  // Group management state
+  const [addingGroup, setAddingGroup] = useState(false);
+  const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
+  const [deletingGroup, setDeletingGroup] = useState<ColorGroup | null>(null);
 
   const visibleColors: Color[] =
     activeGroupId === "__all" ? colors : colors.filter((c) => c.groupId === activeGroupId);
@@ -242,9 +250,7 @@ export default function SettingsColors() {
   // Real backend: same payload + atomic Style ref rewrites.
   function handleApplyImport(importedColors: Color[], importedGroups: ColorGroup[]) {
     setColors(importedColors);
-    // groups is intentionally const at this prototype level, but we'd swap it too in real impl.
-    // For now we only swap colors so the demo stays focused.
-    void importedGroups;
+    if (importedGroups.length > 0) setGroups(importedGroups);
     addAuditEntry({
       action: "import",
       targetType: "color",
@@ -252,6 +258,60 @@ export default function SettingsColors() {
       diff: { after: { name: `Imported ${importedColors.length} colors` } },
     });
     setShowImport(false);
+  }
+
+  // ─── Group management ──────────────────────────────────────────────────────
+  function handleAddGroup(name: string) {
+    if (!name.trim()) return;
+    const newGroup: ColorGroup = {
+      id: generateGroupId(),
+      name: name.trim(),
+      sortOrder: groups.length,
+    };
+    setGroups((prev) => [...prev, newGroup]);
+    addAuditEntry({
+      action: "group_add",
+      targetType: "group",
+      targetId: newGroup.id,
+      diff: { after: { name: newGroup.name } },
+    });
+    setAddingGroup(false);
+  }
+
+  function handleRenameGroup(groupId: string, newName: string) {
+    const before = groups.find((g) => g.id === groupId);
+    if (!before || !newName.trim() || newName.trim() === before.name) {
+      setRenamingGroupId(null);
+      return;
+    }
+    const after = { ...before, name: newName.trim() };
+    setGroups((prev) => prev.map((g) => (g.id === groupId ? after : g)));
+    addAuditEntry({
+      action: "group_rename",
+      targetType: "group",
+      targetId: groupId,
+      diff: { before: { name: before.name }, after: { name: after.name } },
+    });
+    setRenamingGroupId(null);
+  }
+
+  // Delete a group → all colors in it must move to another group. Mirrors
+  // the same "no orphans" discipline as the color-delete flow.
+  function handleDeleteGroup(groupId: string, transferToGroupId: string) {
+    const before = groups.find((g) => g.id === groupId);
+    if (!before) return;
+    setColors((prev) =>
+      prev.map((c) => (c.groupId === groupId ? { ...c, groupId: transferToGroupId, updatedAt: new Date().toISOString() } : c)),
+    );
+    setGroups((prev) => prev.filter((g) => g.id !== groupId));
+    addAuditEntry({
+      action: "group_delete",
+      targetType: "group",
+      targetId: groupId,
+      diff: { before: { name: before.name } },
+    });
+    if (activeGroupId === groupId) setActiveGroupId("__all");
+    setDeletingGroup(null);
   }
 
   return (
@@ -304,18 +364,44 @@ export default function SettingsColors() {
           {groups.map((group) => {
             const count = colors.filter((c) => c.groupId === group.id).length;
             const active = group.id === activeGroupId;
+            const isRenaming = renamingGroupId === group.id;
             return (
-              <button
+              <GroupRow
                 key={group.id}
-                type="button"
-                onClick={() => setActiveGroupId(group.id)}
-                style={groupRowStyle(active)}
-              >
-                <span>{group.name}</span>
-                <span style={{ color: "#667f8e", fontSize: 12 }}>{count}</span>
-              </button>
+                group={group}
+                count={count}
+                active={active}
+                renaming={isRenaming}
+                onSelect={() => setActiveGroupId(group.id)}
+                onStartRename={() => setRenamingGroupId(group.id)}
+                onCommitRename={(name) => handleRenameGroup(group.id, name)}
+                onCancelRename={() => setRenamingGroupId(null)}
+                onDelete={() => setDeletingGroup(group)}
+              />
             );
           })}
+
+          {/* New group inline form / trigger */}
+          {addingGroup ? (
+            <NewGroupRow
+              onCommit={handleAddGroup}
+              onCancel={() => setAddingGroup(false)}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setAddingGroup(true)}
+              style={{
+                ...groupRowStyle(false),
+                color: "#667f8e",
+                fontSize: 12,
+                fontStyle: "italic",
+                marginTop: 4,
+              }}
+            >
+              + New group
+            </button>
+          )}
         </aside>
 
         {/* Main panel — colors table + audit log */}
@@ -452,6 +538,269 @@ export default function SettingsColors() {
           onApply={handleApplyImport}
         />
       )}
+
+      {/* Delete group — forces colors in the group to move to a different group */}
+      {deletingGroup && (
+        <DeleteGroupModal
+          group={deletingGroup}
+          groups={groups}
+          colorsInGroup={colors.filter((c) => c.groupId === deletingGroup.id)}
+          onCancel={() => setDeletingGroup(null)}
+          onSubmit={(targetGroupId) => handleDeleteGroup(deletingGroup.id, targetGroupId)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Group row in sidebar — select, hover-rename, hover-delete ──────────────
+function GroupRow({
+  group,
+  count,
+  active,
+  renaming,
+  onSelect,
+  onStartRename,
+  onCommitRename,
+  onCancelRename,
+  onDelete,
+}: {
+  group: ColorGroup;
+  count: number;
+  active: boolean;
+  renaming: boolean;
+  onSelect: () => void;
+  onStartRename: () => void;
+  onCommitRename: (name: string) => void;
+  onCancelRename: () => void;
+  onDelete: () => void;
+}) {
+  const [hover, setHover] = useState(false);
+  const [name, setName] = useState(group.name);
+
+  if (renaming) {
+    return (
+      <div style={{ ...groupRowStyle(true), padding: "4px 6px" }}>
+        <input
+          autoFocus
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onCommitRename(name);
+            if (e.key === "Escape") onCancelRename();
+          }}
+          onBlur={() => onCommitRename(name)}
+          style={{
+            flex: 1,
+            padding: "4px 6px",
+            border: "1px solid #002744",
+            borderRadius: 4,
+            fontSize: 13,
+            fontFamily: "inherit",
+            minWidth: 0,
+            width: "100%",
+          }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{ position: "relative" }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <button type="button" onClick={onSelect} style={groupRowStyle(active)}>
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{group.name}</span>
+        <span style={{ color: "#667f8e", fontSize: 12, flexShrink: 0 }}>
+          {hover ? (
+            <span style={{ display: "inline-flex", gap: 4 }}>
+              <span
+                role="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setName(group.name);
+                  onStartRename();
+                }}
+                title="Rename"
+                style={{ cursor: "pointer", padding: "0 4px" }}
+              >
+                ✎
+              </span>
+              <span
+                role="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                title="Delete group"
+                style={{ cursor: "pointer", padding: "0 4px", color: "#bf360c" }}
+              >
+                ×
+              </span>
+            </span>
+          ) : (
+            count
+          )}
+        </span>
+      </button>
+    </div>
+  );
+}
+
+// ─── New group inline form ───────────────────────────────────────────────────
+function NewGroupRow({ onCommit, onCancel }: { onCommit: (name: string) => void; onCancel: () => void }) {
+  const [name, setName] = useState("");
+  return (
+    <div style={{ ...groupRowStyle(true), padding: "4px 6px" }}>
+      <input
+        autoFocus
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && name.trim()) onCommit(name);
+          if (e.key === "Escape") onCancel();
+        }}
+        onBlur={() => (name.trim() ? onCommit(name) : onCancel())}
+        placeholder="New group name…"
+        style={{
+          flex: 1,
+          padding: "4px 6px",
+          border: "1px solid #002744",
+          borderRadius: 4,
+          fontSize: 13,
+          fontFamily: "inherit",
+          minWidth: 0,
+          width: "100%",
+        }}
+      />
+    </div>
+  );
+}
+
+// ─── Delete group modal — forces every color in the group to move ────────────
+function DeleteGroupModal({
+  group,
+  groups,
+  colorsInGroup,
+  onCancel,
+  onSubmit,
+}: {
+  group: ColorGroup;
+  groups: ColorGroup[];
+  colorsInGroup: Color[];
+  onCancel: () => void;
+  onSubmit: (targetGroupId: string) => void;
+}) {
+  const otherGroups = groups.filter((g) => g.id !== group.id);
+  const [targetId, setTargetId] = useState(otherGroups[0]?.id ?? "");
+  const canSubmit = !!targetId && otherGroups.length > 0;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0, 39, 68, 0.45)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 50,
+      }}
+      onClick={onCancel}
+    >
+      <div
+        style={{
+          background: "white",
+          width: 520,
+          maxWidth: "calc(100vw - 48px)",
+          maxHeight: "calc(100vh - 48px)",
+          overflow: "auto",
+          borderRadius: 8,
+          padding: 24,
+          boxShadow: "0 24px 64px rgba(0,39,68,0.25)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 style={{ margin: "0 0 8px", fontSize: 18 }}>
+          Delete group "{group.name}" — move colors first
+        </h3>
+        <p style={{ marginBottom: 16, color: "#5d5655", fontSize: 13 }}>
+          {colorsInGroup.length > 0 ? (
+            <>
+              <strong>{group.name}</strong> contains{" "}
+              <strong>
+                {colorsInGroup.length} color{colorsInGroup.length === 1 ? "" : "s"}
+              </strong>
+              . Pick another group for them — no homeless colors permitted.
+            </>
+          ) : (
+            <>
+              <strong>{group.name}</strong> is empty, but the audit-trail discipline still requires you
+              to confirm the delete explicitly.
+            </>
+          )}
+        </p>
+
+        {colorsInGroup.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={labelStyle}>Colors in {group.name}</div>
+            <ul
+              style={{
+                listStyle: "none",
+                padding: 12,
+                margin: 0,
+                background: "#f9f5f3",
+                borderRadius: 6,
+                border: "1px solid #e6e8ec",
+                maxHeight: 140,
+                overflow: "auto",
+              }}
+            >
+              {colorsInGroup.map((c) => (
+                <li key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0", fontSize: 13 }}>
+                  <ColorSwatch hex={c.hex} size={14} />
+                  <span>{c.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {otherGroups.length > 0 ? (
+          <div style={{ marginBottom: 24 }}>
+            <label style={labelStyle}>Move all colors to</label>
+            <select value={targetId} onChange={(e) => setTargetId(e.target.value)} style={inputStyle}>
+              {otherGroups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div style={{ marginBottom: 24, padding: 12, background: "#fbe9e4", border: "1px solid #bf360c", borderRadius: 6, color: "#5d2010", fontSize: 13 }}>
+            Can't delete — this is the only group. Create another group first.
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button type="button" onClick={onCancel} style={ghostBtnStyle()}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => canSubmit && onSubmit(targetId)}
+            disabled={!canSubmit}
+            style={{ ...primaryBtnStyle(!canSubmit), background: canSubmit ? "#bf360c" : "#99a9b4" }}
+          >
+            Move and delete
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
