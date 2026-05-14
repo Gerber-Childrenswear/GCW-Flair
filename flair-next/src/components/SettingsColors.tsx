@@ -25,6 +25,20 @@ const MOCK_USAGE: Record<string, { styles: number; instances: number }> = {
   clr_018: { styles: 3, instances: 14 },
 };
 
+// Mock Style names referencing each color — used by the Delete modal to show
+// the admin exactly what they're about to reassign. Real implementation queries
+// Styles where a creative property's color ID matches.
+const MOCK_STYLES_BY_COLOR: Record<string, string[]> = {
+  clr_001: ["Default Navy", "PDP Hero", "Header Strip", "Cart Banner", "Newsletter", "Trust Pill"],
+  clr_002: ["Trust Badge", "New Arrival"],
+  clr_004: ["Soft CTA", "Newsletter Tile", "Footer Surface"],
+  clr_005: ["Summer Sale", "Warning Pill", "Spring Promo", "Easter Sale"],
+  clr_006: ["Autumn Hero"],
+  clr_007: ["Sale Pill", "Clearance Banner"],
+  clr_013: ["Default Text", "Hero Headline", "Banner Body", "Subtle Border", "Card Highlight"],
+  clr_018: ["Final Hours", "Flash Sale", "Markdown Tag"],
+};
+
 function generateColorId(): string {
   return `clr_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -56,8 +70,10 @@ export default function SettingsColors() {
   const [auditLog, setAuditLog] = useState<ColorAuditEntry[]>(SEED_AUDIT_LOG);
   const [activeGroupId, setActiveGroupId] = useState<string>("__all");
 
-  // Modal state — "form" handles both Add and Edit in later slices.
+  // Modal state — "form" handles both Add and Edit; deletingColor drives the
+  // forced-transfer-or-replace flow.
   const [colorForm, setColorForm] = useState<{ mode: "add" | "edit"; colorId?: string } | null>(null);
+  const [deletingColor, setDeletingColor] = useState<Color | null>(null);
 
   const visibleColors: Color[] =
     activeGroupId === "__all" ? colors : colors.filter((c) => c.groupId === activeGroupId);
@@ -134,6 +150,61 @@ export default function SettingsColors() {
       });
     }
     setColorForm(null);
+  }
+
+  // Delete forces transfer-or-replace. Two resolutions:
+  //   - "transfer": all referencing Styles point to an existing color
+  //   - "replace": create a new color on the spot, references move to it
+  // In real implementation, the Style table is updated to swap color IDs.
+  // Audit log records the delete (and the add, if replace).
+  function handleDeleteColor(
+    colorId: string,
+    resolution:
+      | { mode: "transfer"; targetId: string }
+      | { mode: "replace"; name: string; hex: string; groupId: string },
+  ) {
+    const before = colors.find((c) => c.id === colorId);
+    if (!before) return;
+
+    if (resolution.mode === "replace") {
+      const now = new Date().toISOString();
+      const replacement: Color = {
+        id: generateColorId(),
+        name: resolution.name.trim(),
+        hex: resolution.hex.toLowerCase(),
+        groupId: resolution.groupId,
+        sortOrder: colors.filter((c) => c.groupId === resolution.groupId).length,
+        createdAt: now,
+        updatedAt: now,
+      };
+      // Drop old, append new — Style refs would be rewritten from
+      // colorId → replacement.id in real impl.
+      setColors((prev) => [...prev.filter((c) => c.id !== colorId), replacement]);
+      addAuditEntry({
+        action: "add",
+        targetType: "color",
+        targetId: replacement.id,
+        diff: { after: { name: replacement.name, hex: replacement.hex } },
+      });
+      addAuditEntry({
+        action: "delete",
+        targetType: "color",
+        targetId: colorId,
+        diff: { before: { name: before.name, hex: before.hex } },
+      });
+    } else {
+      // Transfer mode: Style refs would be rewritten from
+      // colorId → resolution.targetId in real impl. Here we just drop the
+      // deleted color from state.
+      setColors((prev) => prev.filter((c) => c.id !== colorId));
+      addAuditEntry({
+        action: "delete",
+        targetType: "color",
+        targetId: colorId,
+        diff: { before: { name: before.name, hex: before.hex } },
+      });
+    }
+    setDeletingColor(null);
   }
 
   return (
@@ -231,7 +302,11 @@ export default function SettingsColors() {
                     >
                       Edit
                     </button>
-                    <button type="button" disabled title="Delete with forced transfer (coming next slice)" style={linkBtnStyle("danger", true)}>
+                    <button
+                      type="button"
+                      onClick={() => setDeletingColor(color)}
+                      style={linkBtnStyle("danger")}
+                    >
                       Delete
                     </button>
                   </div>
@@ -307,6 +382,18 @@ export default function SettingsColors() {
           />
         );
       })()}
+
+      {/* Delete with forced transfer-or-replace */}
+      {deletingColor && (
+        <DeleteColorModal
+          color={deletingColor}
+          palette={colors}
+          groups={groups}
+          styleNames={MOCK_STYLES_BY_COLOR[deletingColor.id] ?? []}
+          onCancel={() => setDeletingColor(null)}
+          onSubmit={(resolution) => handleDeleteColor(deletingColor.id, resolution)}
+        />
+      )}
     </div>
   );
 }
@@ -450,6 +537,246 @@ function ColorFormModal({
             style={primaryBtnStyle(!canSubmit || !dirty)}
           >
             {mode === "add" ? "Add color" : "Save changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Delete-with-transfer modal ──────────────────────────────────────────────
+// Enforces the architectural rule: no orphan color references. The admin must
+// either reassign Styles to an existing color, or define a replacement on the
+// spot that absorbs the references.
+function DeleteColorModal({
+  color,
+  palette,
+  groups,
+  styleNames,
+  onCancel,
+  onSubmit,
+}: {
+  color: Color;
+  palette: Color[];
+  groups: ColorGroup[];
+  styleNames: string[];
+  onCancel: () => void;
+  onSubmit: (
+    resolution:
+      | { mode: "transfer"; targetId: string }
+      | { mode: "replace"; name: string; hex: string; groupId: string },
+  ) => void;
+}) {
+  const otherColors = palette.filter((c) => c.id !== color.id);
+  const [mode, setMode] = useState<"transfer" | "replace">("transfer");
+  const [targetId, setTargetId] = useState<string>(otherColors[0]?.id ?? "");
+  const [replaceName, setReplaceName] = useState<string>("");
+  const [replaceHex, setReplaceHex] = useState<string>(color.hex);
+  const [replaceGroupId, setReplaceGroupId] = useState<string>(color.groupId);
+
+  const validReplaceHex = /^#[0-9a-fA-F]{6}$/.test(replaceHex);
+  const canSubmit =
+    mode === "transfer" ? !!targetId : replaceName.trim().length > 0 && validReplaceHex && replaceGroupId;
+
+  function submit() {
+    if (!canSubmit) return;
+    if (mode === "transfer") {
+      onSubmit({ mode: "transfer", targetId });
+    } else {
+      onSubmit({ mode: "replace", name: replaceName, hex: replaceHex, groupId: replaceGroupId });
+    }
+  }
+
+  const usingCount = styleNames.length;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0, 39, 68, 0.45)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 50,
+      }}
+      onClick={onCancel}
+    >
+      <div
+        style={{
+          background: "white",
+          width: 600,
+          maxWidth: "calc(100vw - 48px)",
+          maxHeight: "calc(100vh - 48px)",
+          overflow: "auto",
+          borderRadius: 8,
+          padding: 24,
+          boxShadow: "0 24px 64px rgba(0,39,68,0.25)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+          <ColorSwatch hex={color.hex} size={28} />
+          <h3 style={{ margin: 0, fontSize: 18 }}>
+            Delete "{color.name}" — transfer first
+          </h3>
+        </div>
+        <p style={{ marginBottom: 20, color: "#5d5655", fontSize: 13 }}>
+          {usingCount > 0 ? (
+            <>
+              <strong>{color.name}</strong> is currently used by{" "}
+              <strong>
+                {usingCount} Style{usingCount === 1 ? "" : "s"}
+              </strong>
+              . You can't delete it without reassigning those references — no orphans permitted.
+            </>
+          ) : (
+            <>
+              <strong>{color.name}</strong> isn't currently referenced by any Style, but the
+              audit-trail discipline still requires you to pick a resolution explicitly.
+            </>
+          )}
+        </p>
+
+        {usingCount > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={labelStyle}>Styles using {color.name}</div>
+            <ul
+              style={{
+                listStyle: "none",
+                padding: 12,
+                margin: 0,
+                background: "#f9f5f3",
+                borderRadius: 6,
+                border: "1px solid #e6e8ec",
+                maxHeight: 140,
+                overflow: "auto",
+              }}
+            >
+              {styleNames.map((s, i) => (
+                <li key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0", fontSize: 13 }}>
+                  <ColorSwatch hex={color.hex} size={14} />
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div style={{ ...labelStyle, marginBottom: 10 }}>Resolve by</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
+          {/* Option 1: transfer to existing */}
+          <label
+            style={{
+              border: `1px solid ${mode === "transfer" ? "#002744" : "#e6e8ec"}`,
+              borderRadius: 6,
+              padding: 12,
+              cursor: "pointer",
+              background: mode === "transfer" ? "#f9f5f3" : "white",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="radio"
+                checked={mode === "transfer"}
+                onChange={() => setMode("transfer")}
+                name="resolution"
+              />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 13 }}>Transfer all references to an existing color</div>
+                <div style={{ fontSize: 11, color: "#667f8e" }}>
+                  Pick another color from the palette; every Style using {color.name} flips to it.
+                </div>
+              </div>
+            </div>
+            {mode === "transfer" && (
+              <div style={{ marginTop: 10, marginLeft: 22, maxWidth: 320 }}>
+                <select value={targetId} onChange={(e) => setTargetId(e.target.value)} style={inputStyle}>
+                  {otherColors.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </label>
+
+          {/* Option 2: define replacement */}
+          <label
+            style={{
+              border: `1px solid ${mode === "replace" ? "#002744" : "#e6e8ec"}`,
+              borderRadius: 6,
+              padding: 12,
+              cursor: "pointer",
+              background: mode === "replace" ? "#f9f5f3" : "white",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="radio"
+                checked={mode === "replace"}
+                onChange={() => setMode("replace")}
+                name="resolution"
+              />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 13 }}>Define a replacement on the spot</div>
+                <div style={{ fontSize: 11, color: "#667f8e" }}>
+                  Enter a new Name + Hex; replaces {color.name} everywhere it's referenced.
+                </div>
+              </div>
+            </div>
+            {mode === "replace" && (
+              <div style={{ marginTop: 10, marginLeft: 22, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div>
+                  <label style={labelStyle}>New name</label>
+                  <input
+                    type="text"
+                    value={replaceName}
+                    onChange={(e) => setReplaceName(e.target.value)}
+                    placeholder="e.g. Summer Maize"
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Hex</label>
+                  <input
+                    type="text"
+                    value={replaceHex}
+                    onChange={(e) => setReplaceHex(e.target.value)}
+                    placeholder="#000000"
+                    style={{ ...inputStyle, fontFamily: "ui-monospace, Menlo, monospace" }}
+                  />
+                  {!validReplaceHex && replaceHex.length > 0 && (
+                    <div style={{ fontSize: 11, color: "#bf360c", marginTop: 4 }}>Invalid hex</div>
+                  )}
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={labelStyle}>Group</label>
+                  <select value={replaceGroupId} onChange={(e) => setReplaceGroupId(e.target.value)} style={inputStyle}>
+                    {groups.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          </label>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button type="button" onClick={onCancel} style={ghostBtnStyle()}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={!canSubmit}
+            style={{ ...primaryBtnStyle(!canSubmit), background: canSubmit ? "#bf360c" : "#99a9b4" }}
+          >
+            Transfer and delete
           </button>
         </div>
       </div>
