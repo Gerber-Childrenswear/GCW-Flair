@@ -74,7 +74,6 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onOpenLay
   return (
     <div className="campaign-list">
       <div className="campaign-list-head">
-        <h1>{label}</h1>
         <div className="campaign-list-actions">
           <button className="ghost-btn" onClick={onOpenLayouts}>
             Layouts
@@ -101,6 +100,7 @@ export default function CampaignList({ campaigns, type, onEdit, onAdd, onOpenLay
             + Add {type}
           </button>
         </div>
+
       </div>
 
       <div className="campaign-toolbar">

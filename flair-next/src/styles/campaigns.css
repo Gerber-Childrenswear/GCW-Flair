@@ -4,22 +4,15 @@
   gap: var(--space-6);
 }
 
+/* The campaign-list-head holds per-page actions only (Layouts toggle,
+   +Add). The page title lives in .workspace-head. */
 .campaign-list-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: var(--space-4);
   border-bottom: 1px solid var(--border-subtle);
   padding-bottom: var(--space-5);
-}
-
-.campaign-list-head h1 {
-  margin: 0;
-  font-size: 28px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--color-oxford-blue);
 }
 
 .campaign-list-actions {
@@ -2030,8 +2023,6 @@
 .settings-page {
   display: grid;
   gap: var(--space-5);
-  max-width: 1280px;
-  padding: var(--space-6) var(--space-8);
 }
 
 .settings-page-head {

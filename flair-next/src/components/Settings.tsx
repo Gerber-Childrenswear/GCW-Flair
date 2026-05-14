@@ -29,10 +29,6 @@ export default function Settings({ onNavigate }: SettingsProps) {
 
   return (
     <div className="settings-page">
-      <div className="settings-page-head">
-        <h1>Settings</h1>
-      </div>
-
       <div className="settings-group">
         <div className="settings-group-title">General</div>
 
