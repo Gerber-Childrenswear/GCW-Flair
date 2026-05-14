@@ -257,7 +257,10 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  min-height: 88px;
+  /* Fixed height — pages all show the same header card regardless of which
+     right-side actions are present. */
+  height: 88px;
+  flex-wrap: nowrap;
 }
 
 .workspace-head > div:first-child {
@@ -265,6 +268,7 @@
   flex-direction: column;
   gap: var(--space-1);
   line-height: 1;
+  min-width: 0;
 }
 
 .workspace-kicker {
@@ -285,13 +289,17 @@
   letter-spacing: -0.02em;
   color: var(--color-oxford-blue);
   line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .workspace-head-actions {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
 .workspace-pill {
