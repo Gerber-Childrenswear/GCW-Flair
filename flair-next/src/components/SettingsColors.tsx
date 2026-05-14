@@ -109,7 +109,9 @@ export default function SettingsColors() {
           const bIdx = groups.findIndex((g) => g.id === b.groupId);
           return (aIdx - bIdx) * dir;
         }
-        return (a.sortOrder - b.sortOrder) * dir;
+        // Tie-break by id so moveColor and visibleColors agree on order
+        // when two peers ever share a sortOrder (rare, but defensive).
+        return ((a.sortOrder - b.sortOrder) || a.id.localeCompare(b.id)) * dir;
     }
   });
 
@@ -230,19 +232,34 @@ export default function SettingsColors() {
   function moveColor(colorId: string, direction: "up" | "down") {
     const color = colors.find((c) => c.id === colorId);
     if (!color) return;
+
+    // Peers in current display order (by sortOrder asc; ties broken by id).
     const peers = colors
       .filter((c) => c.groupId === color.groupId)
-      .sort((a, b) => a.sortOrder - b.sortOrder);
+      .sort((a, b) => (a.sortOrder - b.sortOrder) || a.id.localeCompare(b.id));
+
     const idx = peers.findIndex((c) => c.id === colorId);
     const newIdx = direction === "up" ? idx - 1 : idx + 1;
     if (newIdx < 0 || newIdx >= peers.length) return;
-    const a = peers[idx];
-    const b = peers[newIdx];
+
+    // Swap positions in the peer array, then reassign sequential sortOrders
+    // to the WHOLE peer group. This makes the operation robust even when the
+    // existing sortOrders have collisions or gaps (which can happen after
+    // adds/deletes or JSON imports).
+    const reordered = [...peers];
+    [reordered[idx], reordered[newIdx]] = [reordered[newIdx], reordered[idx]];
+
+    const now = new Date().toISOString();
+    const updates = new Map<string, number>();
+    reordered.forEach((c, i) => {
+      if (c.sortOrder !== i) updates.set(c.id, i);
+    });
+    if (updates.size === 0) return;
+
     setColors((prev) =>
       prev.map((c) => {
-        if (c.id === a.id) return { ...c, sortOrder: b.sortOrder, updatedAt: new Date().toISOString() };
-        if (c.id === b.id) return { ...c, sortOrder: a.sortOrder, updatedAt: new Date().toISOString() };
-        return c;
+        const next = updates.get(c.id);
+        return next === undefined ? c : { ...c, sortOrder: next, updatedAt: now };
       }),
     );
   }
