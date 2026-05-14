@@ -8,6 +8,7 @@ import "./styles/campaigns.css";
 import "./styles/rule-builder.css";
 import "./styles/placement-picker.css";
 import "./styles/analytics.css";
+import "./styles/settings-colors.css";
 
 createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>
