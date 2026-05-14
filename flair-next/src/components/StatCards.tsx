@@ -25,33 +25,35 @@ export default function StatCards({ campaigns, onViewSection }: Props) {
   ];
 
   return (
-    <section className="stats-grid">
+    <section className="row g-4">
       {statCards.map((card) => (
-        <article key={card.title} className="panel stat-panel">
-          <div className="panel-head">
-            <h2>{card.title}</h2>
-            <button
-              className="ghost-btn"
-              onClick={() => onViewSection(card.title)}
-            >
-              View {card.title.toLowerCase()}
-            </button>
-          </div>
-          <div className="status-list">
-            <div className="status-row">
-              <span className="dot ok" />
-              <span>{card.published} Published</span>
+        <div key={card.title} className="col-12 col-lg-6">
+          <article className="panel stat-panel h-100">
+            <div className="panel-head">
+              <h2>{card.title}</h2>
+              <button
+                className="ghost-btn"
+                onClick={() => onViewSection(card.title)}
+              >
+                View {card.title.toLowerCase()}
+              </button>
             </div>
-            <div className="status-row">
-              <span className="dot warn" />
-              <span>{card.scheduled} Scheduled</span>
+            <div className="status-list">
+              <div className="status-row">
+                <span className="dot ok" />
+                <span>{card.published} Published</span>
+              </div>
+              <div className="status-row">
+                <span className="dot warn" />
+                <span>{card.scheduled} Scheduled</span>
+              </div>
+              <div className="status-row">
+                <span className="dot idle" />
+                <span>{card.unpublished} Unpublished</span>
+              </div>
             </div>
-            <div className="status-row">
-              <span className="dot idle" />
-              <span>{card.unpublished} Unpublished</span>
-            </div>
-          </div>
-        </article>
+          </article>
+        </div>
       ))}
     </section>
   );

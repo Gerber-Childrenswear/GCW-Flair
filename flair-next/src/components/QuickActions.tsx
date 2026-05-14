@@ -42,15 +42,17 @@ export default function QuickActions({ onNavigate }: QuickActionsProps) {
   };
 
   return (
-    <section className="quick-grid">
+    <section className="row g-4">
       {quickActions.map((item) => (
-        <article key={item.title} className="panel quick-panel">
-          <div className="panel-head">
-            <h3>{item.title}</h3>
-            <button className="ghost-btn" onClick={() => handleAction(item.title)}>{item.cta}</button>
-          </div>
-          <p>{item.subtitle}</p>
-        </article>
+        <div key={item.title} className="col-12 col-md-6 col-lg-4">
+          <article className="panel quick-panel h-100">
+            <div className="panel-head">
+              <h3>{item.title}</h3>
+              <button className="ghost-btn" onClick={() => handleAction(item.title)}>{item.cta}</button>
+            </div>
+            <p>{item.subtitle}</p>
+          </article>
+        </div>
       ))}
     </section>
   );
