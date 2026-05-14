@@ -7,9 +7,9 @@
 // Slice 1 (read-only):     groups sidebar + colors table + audit log preview
 // Slice 2 (this commit):   Add color modal + page-header actions
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { SEED_COLOR_GROUPS, SEED_COLORS, SEED_AUDIT_LOG } from "../data/color-palette";
-import type { Color, ColorAuditEntry, ColorGroup } from "../types/color";
+import type { Color, ColorAuditEntry, ColorGroup, ImportValidationResult } from "../types/color";
 
 const SETTINGS_ACTOR = "darilee@gerberchildrenswear.com"; // placeholder until auth wires in
 
@@ -71,9 +71,10 @@ export default function SettingsColors() {
   const [activeGroupId, setActiveGroupId] = useState<string>("__all");
 
   // Modal state — "form" handles both Add and Edit; deletingColor drives the
-  // forced-transfer-or-replace flow.
+  // forced-transfer-or-replace flow; showImport drives the JSON import modal.
   const [colorForm, setColorForm] = useState<{ mode: "add" | "edit"; colorId?: string } | null>(null);
   const [deletingColor, setDeletingColor] = useState<Color | null>(null);
+  const [showImport, setShowImport] = useState(false);
 
   const visibleColors: Color[] =
     activeGroupId === "__all" ? colors : colors.filter((c) => c.groupId === activeGroupId);
@@ -207,6 +208,52 @@ export default function SettingsColors() {
     setDeletingColor(null);
   }
 
+  // Export current palette as a downloadable JSON file. Includes colors,
+  // groups, and an export timestamp. Audit logs aren't included in exports
+  // (they're tenancy-local; not part of the palette content).
+  function handleExportJson() {
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      colors,
+      groups,
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `gcw-flair-palette-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    addAuditEntry({
+      action: "export",
+      targetType: "color",
+      targetId: "_palette",
+      diff: { after: { name: `Exported ${colors.length} colors` } },
+    });
+  }
+
+  // Apply a validated import. The validation already confirmed no orphans
+  // would be created, so we can safely swap colors/groups in state.
+  // Real backend: same payload + atomic Style ref rewrites.
+  function handleApplyImport(importedColors: Color[], importedGroups: ColorGroup[]) {
+    setColors(importedColors);
+    // groups is intentionally const at this prototype level, but we'd swap it too in real impl.
+    // For now we only swap colors so the demo stays focused.
+    void importedGroups;
+    addAuditEntry({
+      action: "import",
+      targetType: "color",
+      targetId: "_palette",
+      diff: { after: { name: `Imported ${importedColors.length} colors` } },
+    });
+    setShowImport(false);
+  }
+
   return (
     <div className="settings-colors-page" style={{ padding: "24px 32px", maxWidth: 1280 }}>
       <div
@@ -225,10 +272,10 @@ export default function SettingsColors() {
           </p>
         </div>
         <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-          <button type="button" disabled title="Coming next slice" style={ghostBtnStyle(true)}>
+          <button type="button" onClick={handleExportJson} style={ghostBtnStyle()}>
             Export JSON
           </button>
-          <button type="button" disabled title="Coming next slice" style={ghostBtnStyle(true)}>
+          <button type="button" onClick={() => setShowImport(true)} style={ghostBtnStyle()}>
             Import JSON
           </button>
           <button type="button" onClick={() => setColorForm({ mode: "add" })} style={primaryBtnStyle()}>
@@ -392,6 +439,17 @@ export default function SettingsColors() {
           styleNames={MOCK_STYLES_BY_COLOR[deletingColor.id] ?? []}
           onCancel={() => setDeletingColor(null)}
           onSubmit={(resolution) => handleDeleteColor(deletingColor.id, resolution)}
+        />
+      )}
+
+      {/* JSON import — validates before apply, rejects orphan-creating imports */}
+      {showImport && (
+        <ImportColorsModal
+          palette={colors}
+          groups={groups}
+          styleUsage={MOCK_STYLES_BY_COLOR}
+          onCancel={() => setShowImport(false)}
+          onApply={handleApplyImport}
         />
       )}
     </div>
@@ -778,6 +836,372 @@ function DeleteColorModal({
           >
             Transfer and delete
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Import JSON modal ───────────────────────────────────────────────────────
+// File upload or pasted JSON, validated against current state BEFORE apply.
+// Imports that would orphan in-use colors are rejected with the list of
+// affected Styles — the user must revise the JSON or specify a target.
+// Per the brief: no orphan references permitted, on either the manual delete
+// flow OR the bulk import flow.
+function ImportColorsModal({
+  palette,
+  groups,
+  styleUsage,
+  onCancel,
+  onApply,
+}: {
+  palette: Color[];
+  groups: ColorGroup[];
+  styleUsage: Record<string, string[]>;
+  onCancel: () => void;
+  onApply: (colors: Color[], groups: ColorGroup[]) => void;
+}) {
+  const [jsonText, setJsonText] = useState("");
+  const [validation, setValidation] = useState<ImportValidationResult | null>(null);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? "");
+      setJsonText(text);
+      runValidation(text);
+    };
+    reader.readAsText(file);
+  }
+
+  function runValidation(text: string) {
+    setParseError(null);
+    setValidation(null);
+
+    let parsed: { colors?: Color[]; groups?: ColorGroup[] };
+    try {
+      parsed = JSON.parse(text);
+    } catch (err) {
+      setParseError(`Invalid JSON: ${(err as Error).message}`);
+      return;
+    }
+
+    if (!Array.isArray(parsed.colors)) {
+      setParseError("JSON is missing a top-level `colors` array.");
+      return;
+    }
+
+    const importedColors: Color[] = parsed.colors;
+    const importedGroups: ColorGroup[] = Array.isArray(parsed.groups) ? parsed.groups : groups;
+
+    const importIds = new Set(importedColors.map((c) => c.id));
+    const currentIds = new Set(palette.map((c) => c.id));
+
+    const toAdd = importedColors.filter((c) => !currentIds.has(c.id));
+    const toModify: Array<{ before: Color; after: Color }> = [];
+    for (const imp of importedColors) {
+      const cur = palette.find((c) => c.id === imp.id);
+      if (cur && (cur.name !== imp.name || cur.hex !== imp.hex || cur.groupId !== imp.groupId)) {
+        toModify.push({ before: cur, after: imp });
+      }
+    }
+
+    const droppedColors = palette.filter((c) => !importIds.has(c.id));
+    const toDropInUse: Array<{ color: Color; usingStyleIds: string[] }> = [];
+    const toDropFree: Color[] = [];
+    for (const c of droppedColors) {
+      const using = styleUsage[c.id] ?? [];
+      if (using.length > 0) toDropInUse.push({ color: c, usingStyleIds: using });
+      else toDropFree.push(c);
+    }
+
+    setValidation({
+      ok: toDropInUse.length === 0,
+      toAdd,
+      toModify,
+      toDropInUse,
+      toDropFree,
+    });
+    // groups currently unused in validation logic but available for future
+    // group-orphan checking
+    void importedGroups;
+  }
+
+  function apply() {
+    if (!validation?.ok) return;
+    try {
+      const parsed: { colors?: Color[]; groups?: ColorGroup[] } = JSON.parse(jsonText);
+      onApply(parsed.colors ?? [], parsed.groups ?? groups);
+    } catch {
+      // Shouldn't reach here — we already parsed during validation.
+    }
+  }
+
+  function reset() {
+    setJsonText("");
+    setValidation(null);
+    setParseError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0, 39, 68, 0.45)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 50,
+      }}
+      onClick={onCancel}
+    >
+      <div
+        style={{
+          background: "white",
+          width: 720,
+          maxWidth: "calc(100vw - 48px)",
+          maxHeight: "calc(100vh - 48px)",
+          overflow: "auto",
+          borderRadius: 8,
+          padding: 24,
+          boxShadow: "0 24px 64px rgba(0,39,68,0.25)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 style={{ margin: "0 0 8px", fontSize: 18 }}>Import JSON</h3>
+        <p style={{ marginBottom: 20, color: "#5d5655", fontSize: 13 }}>
+          For brand-refresh-scale changes: edit your exported JSON externally, then re-import. The
+          import is validated <strong>before</strong> applying — any change that would orphan an in-use
+          color is rejected with the list of affected Styles.
+        </p>
+
+        {/* Step 1: input */}
+        {!validation && !parseError && (
+          <>
+            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json,.json"
+                onChange={handleFileSelect}
+                style={{ flex: 1, padding: 8, border: "1px dashed #99a9b4", borderRadius: 6, fontSize: 13 }}
+              />
+            </div>
+            <div style={{ ...labelStyle, marginBottom: 6 }}>Or paste JSON</div>
+            <textarea
+              value={jsonText}
+              onChange={(e) => setJsonText(e.target.value)}
+              placeholder={`{\n  "colors": [...],\n  "groups": [...]\n}`}
+              style={{
+                width: "100%",
+                minHeight: 160,
+                padding: 12,
+                border: "1px solid #e6e8ec",
+                borderRadius: 6,
+                fontFamily: "ui-monospace, Menlo, monospace",
+                fontSize: 12,
+                boxSizing: "border-box",
+                resize: "vertical",
+              }}
+            />
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 16 }}>
+              <button type="button" onClick={onCancel} style={ghostBtnStyle()}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => runValidation(jsonText)}
+                disabled={jsonText.trim().length === 0}
+                style={primaryBtnStyle(jsonText.trim().length === 0)}
+              >
+                Validate
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Parse error */}
+        {parseError && (
+          <>
+            <div
+              style={{
+                padding: 12,
+                background: "#fbe9e4",
+                border: "1px solid #bf360c",
+                borderRadius: 6,
+                color: "#5d2010",
+                fontSize: 13,
+                marginBottom: 16,
+              }}
+            >
+              <strong>Couldn't parse the file.</strong> {parseError}
+            </div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button type="button" onClick={onCancel} style={ghostBtnStyle()}>
+                Cancel
+              </button>
+              <button type="button" onClick={reset} style={primaryBtnStyle()}>
+                Try again
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Step 2: validation result */}
+        {validation && (
+          <>
+            <div
+              style={{
+                padding: 12,
+                background: validation.ok ? "#e7f0ec" : "#fbe9e4",
+                border: `1px solid ${validation.ok ? "#86b3a1" : "#bf360c"}`,
+                borderRadius: 6,
+                color: validation.ok ? "#1a4a32" : "#5d2010",
+                fontSize: 13,
+                marginBottom: 16,
+              }}
+            >
+              {validation.ok ? (
+                <>
+                  <strong>Import looks safe.</strong> No orphans. {validation.toAdd.length} added,{" "}
+                  {validation.toModify.length} modified, {validation.toDropFree.length} removed.
+                </>
+              ) : (
+                <>
+                  <strong>Import rejected — would orphan {validation.toDropInUse.length} in-use color
+                  {validation.toDropInUse.length === 1 ? "" : "s"}.</strong> Either restore those colors
+                  in the JSON, or run a manual Delete-with-transfer first.
+                </>
+              )}
+            </div>
+
+            <ValidationSection
+              title="Will be added"
+              count={validation.toAdd.length}
+              rows={validation.toAdd.map((c) => (
+                <ValidationRow key={c.id} hex={c.hex} label={c.name} sub={c.id} />
+              ))}
+            />
+
+            <ValidationSection
+              title="Will be modified (cascades to existing Styles)"
+              count={validation.toModify.length}
+              rows={validation.toModify.map(({ before, after }) => (
+                <ValidationRow
+                  key={before.id}
+                  hex={after.hex}
+                  label={`${before.name} → ${after.name}`}
+                  sub={`${before.hex.toUpperCase()} → ${after.hex.toUpperCase()}`}
+                />
+              ))}
+            />
+
+            <ValidationSection
+              title="Will be removed (not in use — safe)"
+              count={validation.toDropFree.length}
+              rows={validation.toDropFree.map((c) => (
+                <ValidationRow key={c.id} hex={c.hex} label={c.name} sub="Not referenced by any Style" />
+              ))}
+            />
+
+            {validation.toDropInUse.length > 0 && (
+              <ValidationSection
+                title="Would orphan — BLOCKS import"
+                tone="danger"
+                count={validation.toDropInUse.length}
+                rows={validation.toDropInUse.map(({ color, usingStyleIds }) => (
+                  <ValidationRow
+                    key={color.id}
+                    hex={color.hex}
+                    label={color.name}
+                    sub={`Used by ${usingStyleIds.length} Style${usingStyleIds.length === 1 ? "" : "s"}: ${usingStyleIds.join(", ")}`}
+                  />
+                ))}
+              />
+            )}
+
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 16 }}>
+              <button type="button" onClick={reset} style={ghostBtnStyle()}>
+                Back
+              </button>
+              <button type="button" onClick={onCancel} style={ghostBtnStyle()}>
+                Cancel
+              </button>
+              <button type="button" onClick={apply} disabled={!validation.ok} style={primaryBtnStyle(!validation.ok)}>
+                Apply import
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ValidationSection({
+  title,
+  count,
+  rows,
+  tone = "normal",
+}: {
+  title: string;
+  count: number;
+  rows: React.ReactNode[];
+  tone?: "normal" | "danger";
+}) {
+  if (count === 0) return null;
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div
+        style={{
+          fontSize: 11,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: tone === "danger" ? "#bf360c" : "#667f8e",
+          fontWeight: 600,
+          marginBottom: 8,
+        }}
+      >
+        {title} ({count})
+      </div>
+      <div
+        style={{
+          border: `1px solid ${tone === "danger" ? "#bf360c" : "#e6e8ec"}`,
+          borderRadius: 6,
+          padding: 8,
+          background: tone === "danger" ? "#fbe9e4" : "#f9f5f3",
+        }}
+      >
+        {rows}
+      </div>
+    </div>
+  );
+}
+
+function ValidationRow({ hex, label, sub }: { hex: string; label: string; sub: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 4px", fontSize: 13 }}>
+      <span
+        style={{
+          display: "inline-block",
+          width: 18,
+          height: 18,
+          borderRadius: 3,
+          background: hex,
+          border: "1px solid rgba(0,0,0,0.08)",
+          flexShrink: 0,
+        }}
+      />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 500 }}>{label}</div>
+        <div style={{ fontSize: 11, color: "#667f8e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {sub}
         </div>
       </div>
     </div>
