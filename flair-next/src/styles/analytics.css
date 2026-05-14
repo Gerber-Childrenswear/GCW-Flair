@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
+  width: 100%;
 }
 
 .analytics-header {
@@ -224,6 +225,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  width: 100%;
 }
 
 .template-library-header {
