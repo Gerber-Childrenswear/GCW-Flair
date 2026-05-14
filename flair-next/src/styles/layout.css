@@ -239,13 +239,24 @@
 
 /* Every direct child of .content fills the column. min-width: 0 prevents
    the classic grid-item blowout where intrinsic min-content forces a
-   wider-than-parent box. Combined with the explicit single-column grid
-   above, every page renders at the same width regardless of how deeply
-   its content is nested. */
+   wider-than-parent box. margin: 0 kills any orphan vertical margins
+   leaking from nested wrappers (e.g. Bootstrap's negative row margin)
+   so the .content grid `gap` is the single source of vertical rhythm. */
 .content > * {
   width: 100%;
   min-width: 0;
+  margin: 0;
 }
+
+/* Bootstrap rows set negative horizontal margins to compensate for col
+   gutters — fine inside themselves, but when a .row is a direct child of
+   .content (a grid) those negative margins make the row appear to bleed
+   outside .content's padding. Re-center it inside .content. */
+.content > .row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
 
 .workspace-head {
   background: var(--bg-surface);
