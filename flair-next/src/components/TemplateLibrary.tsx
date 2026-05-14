@@ -45,8 +45,8 @@ export default function TemplateLibrary({ onApply, onClose }: Props) {
     : TEMPLATES.filter((t) => t.category === activeCategory);
 
   return (
-    <div className="row g-4">
-      <div className="col-12 template-library-header">
+    <div className="template-library">
+      <div className="template-library-header">
         <div>
           <h2 className="template-library-title">Template Library</h2>
           <p className="template-library-subtitle">Start from a pre-built template or build from scratch.</p>
@@ -59,7 +59,7 @@ export default function TemplateLibrary({ onApply, onClose }: Props) {
       </div>
 
       {/* Category filter */}
-      <div className="col-12 template-categories">
+      <div className="template-categories">
         {ALL_CATEGORIES.map((cat) => (
           <button
             key={cat}
@@ -72,7 +72,7 @@ export default function TemplateLibrary({ onApply, onClose }: Props) {
       </div>
 
       {/* Template grid */}
-      <div className="col-12 template-grid">
+      <div className="template-grid">
         {/* Blank template card */}
         <div
           className="template-card template-card--blank"
