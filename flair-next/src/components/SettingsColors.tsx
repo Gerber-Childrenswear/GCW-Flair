@@ -93,6 +93,49 @@ export default function SettingsColors() {
     setColorForm(null);
   }
 
+  // Edit cascades to every Style using this Color ID — by reference, IDs stay
+  // stable so no cleanup is needed elsewhere. The audit log records each
+  // changed dimension (name / hex / group) as a separate entry for clarity.
+  function handleEditColor(colorId: string, patch: { name: string; hex: string; groupId: string }) {
+    const before = colors.find((c) => c.id === colorId);
+    if (!before) return;
+    const now = new Date().toISOString();
+    const after: Color = {
+      ...before,
+      name: patch.name.trim(),
+      hex: patch.hex.toLowerCase(),
+      groupId: patch.groupId,
+      updatedAt: now,
+    };
+    setColors((prev) => prev.map((c) => (c.id === colorId ? after : c)));
+
+    if (before.name !== after.name) {
+      addAuditEntry({
+        action: "edit_name",
+        targetType: "color",
+        targetId: colorId,
+        diff: { before: { name: before.name }, after: { name: after.name } },
+      });
+    }
+    if (before.hex !== after.hex) {
+      addAuditEntry({
+        action: "edit_hex",
+        targetType: "color",
+        targetId: colorId,
+        diff: { before: { hex: before.hex }, after: { hex: after.hex } },
+      });
+    }
+    if (before.groupId !== after.groupId) {
+      addAuditEntry({
+        action: "edit_group",
+        targetType: "color",
+        targetId: colorId,
+        diff: { before: { groupId: before.groupId }, after: { groupId: after.groupId } },
+      });
+    }
+    setColorForm(null);
+  }
+
   return (
     <div className="settings-colors-page" style={{ padding: "24px 32px", maxWidth: 1280 }}>
       <div
@@ -181,7 +224,11 @@ export default function SettingsColors() {
                     <div style={{ fontSize: 10, color: "#99a9b4" }}>{usage.instances} live instances</div>
                   </div>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                    <button type="button" disabled title="Edit (coming next slice)" style={linkBtnStyle("muted", true)}>
+                    <button
+                      type="button"
+                      onClick={() => setColorForm({ mode: "edit", colorId: color.id })}
+                      style={linkBtnStyle("muted")}
+                    >
                       Edit
                     </button>
                     <button type="button" disabled title="Delete with forced transfer (coming next slice)" style={linkBtnStyle("danger", true)}>
@@ -239,6 +286,27 @@ export default function SettingsColors() {
           onSubmit={handleAddColor}
         />
       )}
+
+      {/* Edit color modal — same component, edit mode, cascade hint */}
+      {colorForm?.mode === "edit" && colorForm.colorId && (() => {
+        const editing = colors.find((c) => c.id === colorForm.colorId);
+        if (!editing) return null;
+        const usage = MOCK_USAGE[editing.id] ?? { styles: 0, instances: 0 };
+        const cascadeHint =
+          usage.styles > 0
+            ? `Used by ${usage.styles} Style${usage.styles === 1 ? "" : "s"} · cascades to ${usage.instances} live instance${usage.instances === 1 ? "" : "s"}`
+            : "Not used in any Style yet — no cascade impact";
+        return (
+          <ColorFormModal
+            mode="edit"
+            groups={groups}
+            initial={{ name: editing.name, hex: editing.hex, groupId: editing.groupId }}
+            cascadeHint={cascadeHint}
+            onCancel={() => setColorForm(null)}
+            onSubmit={(patch) => handleEditColor(editing.id, patch)}
+          />
+        );
+      })()}
     </div>
   );
 }
@@ -248,12 +316,14 @@ function ColorFormModal({
   mode,
   groups,
   initial,
+  cascadeHint,
   onCancel,
   onSubmit,
 }: {
   mode: "add" | "edit";
   groups: ColorGroup[];
   initial?: { name: string; hex: string; groupId: string };
+  cascadeHint?: string;
   onCancel: () => void;
   onSubmit: (input: { name: string; hex: string; groupId: string }) => void;
 }) {
@@ -263,6 +333,11 @@ function ColorFormModal({
 
   const validHex = /^#[0-9a-fA-F]{6}$/.test(hex);
   const canSubmit = name.trim().length > 0 && validHex && groupId;
+  const dirty =
+    !initial ||
+    name.trim() !== initial.name ||
+    hex.toLowerCase() !== initial.hex.toLowerCase() ||
+    groupId !== initial.groupId;
 
   return (
     <div
@@ -289,9 +364,29 @@ function ColorFormModal({
         onClick={(e) => e.stopPropagation()}
       >
         <h3 style={{ margin: "0 0 8px", fontSize: 18 }}>{mode === "add" ? "Add color" : "Edit color"}</h3>
-        <p style={{ marginBottom: 20, color: "#667f8e", fontSize: 13 }}>
+        <p style={{ marginBottom: cascadeHint ? 12 : 20, color: "#667f8e", fontSize: 13 }}>
           Hex is entered here only — Style editors elsewhere in Flair display this color by name + swatch.
         </p>
+
+        {cascadeHint && (
+          <div
+            style={{
+              padding: "8px 12px",
+              borderRadius: 6,
+              background: "#fcf4db",
+              border: "1px solid #f2c94c",
+              color: "#5d5655",
+              fontSize: 12,
+              marginBottom: 20,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <span style={{ fontSize: 14 }}>⚡</span>
+            <span>{cascadeHint}</span>
+          </div>
+        )}
 
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Name</label>
@@ -350,9 +445,9 @@ function ColorFormModal({
           </button>
           <button
             type="button"
-            onClick={() => canSubmit && onSubmit({ name, hex, groupId })}
-            disabled={!canSubmit}
-            style={primaryBtnStyle(!canSubmit)}
+            onClick={() => canSubmit && dirty && onSubmit({ name, hex, groupId })}
+            disabled={!canSubmit || !dirty}
+            style={primaryBtnStyle(!canSubmit || !dirty)}
           >
             {mode === "add" ? "Add color" : "Save changes"}
           </button>
