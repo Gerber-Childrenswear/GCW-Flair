@@ -1,3 +1,19 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// REVIEW FLAG — conditions logic / data model
+// ═══════════════════════════════════════════════════════════════════════════
+// The conditions data layer in this file (Row <-> RuleCondition collapse,
+// unified sortOrder across rows + child groups, staged-row promotion on
+// first chip, nested-group cascade on remove, root-group seeding) needs
+// a focused logic-review pass before production. Today's iterations on
+// this surface are UX / UI shaping — colour, spacing, copy, nesting
+// affordances. The underlying behaviour got a fix in commit cedd819
+// for the row/group ordering bug, but the broader correctness review
+// — what happens with edge-case seeded campaigns, what the sortOrder
+// math does under churn, whether the staged-row state can desync from
+// the persisted store — hasn't happened yet. Come back here with
+// logic-review goggles and tests before this ships to merchants.
+// ═══════════════════════════════════════════════════════════════════════════
+
 // Nested conditions UI for the Badge editor.
 //
 // Goes BEYOND real Flair (which is flat ALL/ANY only) by supporting

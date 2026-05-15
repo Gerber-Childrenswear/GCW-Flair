@@ -134,9 +134,9 @@ export default function BadgeEditor({ campaign, onSave, onCancel }: Props) {
         </div>
       </div>
 
-      <div className="row g-4">
+      <div className="be-editor-grid">
         {/* ─── Left column ────────────────────────────────────────────── */}
-        <div className="col-lg-8 d-flex flex-column gap-4">
+        <div className="be-editor-col">
           {/* Type */}
           <section className="be-card">
             <div className="be-card-title">Type</div>
@@ -212,7 +212,7 @@ export default function BadgeEditor({ campaign, onSave, onCancel }: Props) {
         </div>
 
         {/* ─── Right column ───────────────────────────────────────────── */}
-        <div className="col-lg-4 d-flex flex-column gap-4">
+        <div className="be-editor-col">
           {/* Status */}
           <section className="be-card">
             <div className="be-card-title">Status</div>
@@ -250,9 +250,12 @@ export default function BadgeEditor({ campaign, onSave, onCancel }: Props) {
                 </option>
               ))}
             </select>
-            {selectedStyle?.description && (
-              <div className="be-style-deck">{selectedStyle.description}</div>
-            )}
+            {/* Always render the deck so the card height doesn't change when
+                a different Style is picked. CSS reserves two lines of space
+                and clamps longer descriptions with an ellipsis. */}
+            <div className="be-style-deck">
+              {selectedStyle?.description ?? ""}
+            </div>
           </section>
 
           {/* Link */}
