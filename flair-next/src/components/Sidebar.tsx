@@ -4,14 +4,15 @@ type Props = {
 };
 
 // Order mirrors the vision brief Decision #6 (left menu structure).
-// Templates is intentionally omitted — likely deprecated by Global Styles.
+// - Templates: intentionally omitted, likely deprecated by Global Styles.
+// - Countdowns: intentionally omitted, they're a sub-feature of Banners,
+//   not a peer surface (see brief Decision #2).
 const appNav = [
   "Overview",
   "Global Styles",
   "Campaigns",
   "Badges",
   "Banners",
-  "Countdowns",
   "Automations",
   "Analytics",
   "Settings",

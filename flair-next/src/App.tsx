@@ -8,8 +8,10 @@ import LayoutLibrary from "./components/LayoutLibrary";
 import Settings from "./components/Settings";
 import GlobalStyles from "./components/GlobalStyles";
 import AutomationCenter from "./components/AutomationCenter";
-import CountdownManager from "./components/CountdownManager";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
+// CountdownManager intentionally not imported — countdowns are a Banner
+// sub-feature, not a standalone surface (see brief Decision #2 update on
+// 2026-05-15). The file is kept for now as scaffolding reference.
 import { generateId, mockBadges, mockBanners } from "./data/mock-campaigns";
 import { getDefaultDesignSystemConfig, getDesignPresetById } from "./data/design-system";
 import { buildCampaignPlacements, type LayoutDefinition } from "./data/layout-library";
@@ -357,8 +359,6 @@ export default function App() {
               </div>
             </div>
           )}
-
-          {activeView === "Countdowns" && <CountdownManager campaigns={allCampaigns} />}
 
           {activeView === "Automations" && <AutomationCenter campaigns={allCampaigns} />}
 
