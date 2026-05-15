@@ -13,6 +13,8 @@
 import { useMemo, useState } from "react";
 import type { Campaign, CampaignStatus, RuleGroup, RuleCondition } from "../types/campaign";
 import BadgeConditions from "./BadgeConditions";
+import ImageUpload from "./ImageUpload";
+import type { ImageContent } from "./ImageUpload";
 import { SEED_STYLES } from "../data/style-palette";
 import { BadgePreview } from "./StylePreviews";
 import type { BadgeStyleConfig } from "../types/style";
@@ -172,31 +174,80 @@ export default function BadgeEditor({ campaign, onSave, onCancel }: Props) {
           <section className="be-card">
             <div className="be-card-title">Preview</div>
             <div className="be-preview-shell">
-              {badgeConfig ? (
-                <BadgePreview
-                  config={badgeConfig}
-                  label={(badgeText || "BADGE").toUpperCase().slice(0, 28)}
-                />
-              ) : (
+              {!badgeConfig ? (
                 <div className="be-preview-empty">
                   Pick a Global Style to see the preview.
                 </div>
+              ) : contentType === "image" && !working.creative.imageUrl ? (
+                /* Image mode but nothing uploaded yet — show a placeholder
+                   so the preview reflects the active type instead of
+                   falling back to the text label (which made Image mode
+                   look indistinguishable from Text mode). */
+                <div className="be-preview-image-placeholder">
+                  <svg viewBox="0 0 24 24" width="40" height="40" aria-hidden>
+                    <path
+                      d="M19 5v9.59l-2.29-2.3a1 1 0 0 0-1.42 0L11 16.59l-2.29-2.3a1 1 0 0 0-1.42 0L5 16.59V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"
+                      fill="currentColor"
+                    />
+                    <circle cx="8.5" cy="9.5" r="1.5" fill="currentColor" />
+                  </svg>
+                  <div>Upload an image to preview</div>
+                </div>
+              ) : (
+                <BadgePreview
+                  config={badgeConfig}
+                  label={(badgeText || "BADGE").toUpperCase().slice(0, 28)}
+                  image={
+                    contentType === "image" && working.creative.imageUrl
+                      ? {
+                          url: working.creative.imageUrl,
+                          alt: working.creative.altText ?? "",
+                          width: working.creative.imageWidth ?? null,
+                          height: working.creative.imageHeight ?? null,
+                        }
+                      : null
+                  }
+                />
               )}
             </div>
           </section>
 
-          {/* Content */}
+          {/* Content — text input for Text type, image upload for Image type */}
           <section className="be-card">
             <div className="be-card-title">
-              Content <span className="be-info-dot" title="The text rendered inside the badge.">i</span>
+              Content{" "}
+              <span
+                className="be-info-dot"
+                title={
+                  contentType === "image"
+                    ? "The image rendered inside the badge."
+                    : "The text rendered inside the badge."
+                }
+              >
+                i
+              </span>
             </div>
-            <input
-              type="text"
-              className="be-input"
-              value={badgeText}
-              onChange={(e) => updateCreative({ text: e.target.value })}
-              placeholder="FREE EMBROIDERY"
-            />
+            {contentType === "image" ? (
+              <ImageUpload
+                value={{
+                  imageUrl: working.creative.imageUrl ?? null,
+                  imageFileName: working.creative.imageFileName ?? null,
+                  imageWidth: working.creative.imageWidth ?? null,
+                  imageHeight: working.creative.imageHeight ?? null,
+                  imageSourceUrl: working.creative.imageSourceUrl ?? null,
+                  altText: working.creative.altText ?? "",
+                }}
+                onChange={(patch: Partial<ImageContent>) => updateCreative(patch)}
+              />
+            ) : (
+              <input
+                type="text"
+                className="be-input"
+                value={badgeText}
+                onChange={(e) => updateCreative({ text: e.target.value })}
+                placeholder="FREE EMBROIDERY"
+              />
+            )}
           </section>
 
           {/* Conditions — lean Flair-style picker. Value chips are mocked

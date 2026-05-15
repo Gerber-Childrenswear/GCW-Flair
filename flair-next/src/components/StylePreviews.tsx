@@ -9,14 +9,25 @@ import {
 import type { BadgeStyleConfig, BannerStyleConfig } from "../types/style";
 
 // ─── Badge preview ───────────────────────────────────────────────────────────
+// Renders text by default. Pass `image` to render the merchant's uploaded
+// image inside the Style's frame instead — bg / border / radius / shadow /
+// padding still apply; text-specific fields (font, colour, letter spacing,
+// etc.) are ignored when an image is shown.
 export function BadgePreview({
   config,
   label = "BADGE TEXT",
   scale = 1,
+  image,
 }: {
   config: BadgeStyleConfig;
   label?: string;
   scale?: number;
+  image?: {
+    url: string;
+    alt: string;
+    width: number | null;
+    height: number | null;
+  } | null;
 }) {
   const r = resolveBadgeStyle(config);
   return (
@@ -43,7 +54,17 @@ export function BadgePreview({
         lineHeight: 1.1,
       }}
     >
-      {label}
+      {image ? (
+        <img
+          src={image.url}
+          alt={image.alt}
+          width={image.width ?? undefined}
+          height={image.height ?? undefined}
+          style={{ display: "block", maxWidth: "100%", height: "auto" }}
+        />
+      ) : (
+        label
+      )}
     </span>
   );
 }

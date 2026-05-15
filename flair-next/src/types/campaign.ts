@@ -76,6 +76,17 @@ export type Creative = {
   borderWidthPreset?: "none" | "thin" | "medium";
   shadowPreset?: "none" | "small" | "medium";
   cornerPreset?: "square" | "rounded" | "pill";
+  // ── Image content (set when contentMode is "image") ──
+  // imageUrl is the rendered source — a base64 data URL for prototype
+  // uploads, or the same value as imageSourceUrl when the merchant
+  // pasted a hosted URL. Nick swaps this layer to a Shopify CDN URL in
+  // production without any UI change.
+  imageUrl?: string | null;
+  imageFileName?: string | null;
+  imageWidth?: number | null;
+  imageHeight?: number | null;
+  imageSourceUrl?: string | null;
+  altText?: string;
 };
 
 // ── Schedule ──────────────────────────────────────────────────────────────────
