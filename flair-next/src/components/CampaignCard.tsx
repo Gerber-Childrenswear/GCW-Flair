@@ -1,5 +1,7 @@
 import type { Campaign } from "../types/campaign";
 import { resolveCampaignCreative } from "../data/design-system";
+import { SEED_STYLES } from "../data/style-palette";
+import { BadgePreview, BannerPreview } from "./StylePreviews";
 
 type Props = {
   campaign: Campaign;
@@ -23,6 +25,14 @@ export default function CampaignCard({ campaign, onEdit, isSelected, onSelect }:
   const tagCount = campaign.ruleConditions.filter((c) => c.field === "product_tag").length;
   const previewLabel = lines[0] || campaign.name || "Untitled";
   const previewBody = lines.slice(1).join(" ").trim();
+
+  // Look up the Style the campaign references. If found AND the campaign's
+  // surface (badge/banner) is configured on that Style, render through the
+  // new Style cascade. Otherwise fall back to the legacy swatch.
+  const style = campaign.styleId ? SEED_STYLES.find((s) => s.id === campaign.styleId) : null;
+  const styleConfig =
+    style && (campaign.type === "badge" ? style.badge : style.banner);
+
   const previewClass = campaign.type === "banner" ? "campaign-card-swatch campaign-card-swatch--banner" : "campaign-card-swatch campaign-card-swatch--badge";
   const toneClass = `campaign-card-tone campaign-card-tone--${resolvedCreative.stylePreset ?? "custom"}`;
 
@@ -54,12 +64,30 @@ export default function CampaignCard({ campaign, onEdit, isSelected, onSelect }:
         <span className="campaign-card-topline-meta">{condCount} condition{condCount !== 1 ? "s" : ""}</span>
       </div>
       <div className="campaign-card-preview-shell">
-        <div className={`${previewClass} ${toneClass}`}>
-          <div className="preview-headline">{previewLabel}</div>
-          {campaign.type === "banner" && previewBody && (
-            <div className="preview-body">{previewBody}</div>
-          )}
-        </div>
+        {styleConfig ? (
+          campaign.type === "badge" ? (
+            <BadgePreview
+              config={styleConfig as import("../types/style").BadgeStyleConfig}
+              label={previewLabel.toUpperCase().slice(0, 22)}
+              scale={0.9}
+            />
+          ) : (
+            <BannerPreview
+              config={styleConfig as import("../types/style").BannerStyleConfig}
+              headlineText={previewLabel}
+              copyText={lines[1] ?? ""}
+              detailsText={lines[2] ?? ""}
+              scale={0.6}
+            />
+          )
+        ) : (
+          <div className={`${previewClass} ${toneClass}`}>
+            <div className="preview-headline">{previewLabel}</div>
+            {campaign.type === "banner" && previewBody && (
+              <div className="preview-body">{previewBody}</div>
+            )}
+          </div>
+        )}
       </div>
       <div className="campaign-card-name">{campaign.name || lines[0] || "Untitled"}</div>
       <div className="campaign-card-meta">

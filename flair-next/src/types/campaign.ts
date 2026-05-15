@@ -226,11 +226,17 @@ export type RecommendationConfig = {
 };
 
 // ── Campaign ──────────────────────────────────────────────────────────────────
+// styleId — reference into the Global Styles library (data/style-palette).
+// When set, the campaign renders through the new Style cascade (resolved
+// at preview-time via StylePreviews / style-resolver) instead of the old
+// stylePreset / per-instance Creative styling. Per-instance content (the
+// text in `creative`) stays on the Campaign.
 export type Campaign = {
   id: string;
   type: CampaignType;
   status: CampaignStatus;
   name: string;
+  styleId?: string | null;
   creative: Creative;
   ruleGroups: RuleGroup[];
   ruleConditions: RuleCondition[];
