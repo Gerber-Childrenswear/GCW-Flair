@@ -18,6 +18,7 @@
   --color-navy-60: #667F8E;
   --color-navy-40: #99A9B4;
   --color-navy-20: #CCD4D9;
+  --color-navy-10: #E6EAEC;
   
   /* Functional Colors */
   --color-coral-sale: #BF360C;
@@ -32,11 +33,11 @@
   --bg-muted: #F4EFEC;
   --bg-topbar: var(--color-oxford-blue);
   --text-primary: var(--color-oxford-blue);
-  --text-secondary: #667F8E;
+  --text-secondary: var(--color-navy-60);
   --text-inverse: #FFFFFF;
-  --text-muted: #99A9B4;
-  --border-subtle: #E6E8EC;
-  --border-strong: #CCD4D9;
+  --text-muted: var(--color-navy-40);
+  --border-subtle: var(--color-navy-20);
+  --border-strong: var(--color-navy-40);
   --accent: var(--color-jordy-blue);
   --ok: var(--color-success);
   --warn: #D68F00;
