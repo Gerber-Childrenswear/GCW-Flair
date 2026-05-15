@@ -14,6 +14,7 @@ import "./styles/placement-picker.css";
 import "./styles/analytics.css";
 import "./styles/settings-colors.css";
 import "./styles/global-styles.css";
+import "./styles/badge-editor.css";
 
 createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>

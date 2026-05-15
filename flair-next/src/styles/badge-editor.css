@@ -1,0 +1,620 @@
+/* Badge editor — the lean per-badge edit surface.
+ *
+ * Sister stylesheet to global-styles.css. Card-per-section layout, two
+ * columns (left 8 / right 4 on lg). All visual styling for the badge
+ * itself comes through the Global Style cascade, not from this file —
+ * these styles only chrome the editor.
+ */
+
+.be-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ─── Page head: back link + save/discard ──────────────────────────────── */
+
+.be-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.be-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-oxford-blue);
+  padding: 4px 2px;
+}
+
+.be-back:hover {
+  color: var(--color-jordy-blue);
+}
+
+.be-head-actions {
+  display: inline-flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* ─── Card per section ─────────────────────────────────────────────────── */
+
+.be-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.be-card-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-oxford-blue);
+}
+
+.be-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.be-info-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 700;
+  font-style: italic;
+  font-family: var(--font-sans);
+  margin-left: 4px;
+  cursor: help;
+}
+
+.be-add-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-jordy-blue);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.be-add-btn:hover {
+  background: rgba(122, 159, 219, 0.1);
+  color: var(--color-oxford-blue);
+}
+
+.be-add-btn--remove {
+  color: var(--text-muted);
+}
+
+.be-add-btn--remove:hover {
+  background: rgba(225, 89, 89, 0.08);
+  color: #a13030;
+}
+
+/* ─── Type radios ──────────────────────────────────────────────────────── */
+
+.be-radio-row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.be-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.be-radio input[type="radio"] {
+  accent-color: var(--color-oxford-blue);
+  width: 16px;
+  height: 16px;
+}
+
+.be-radio.is-active {
+  color: var(--color-oxford-blue);
+  font-weight: 600;
+}
+
+/* ─── Preview shell ────────────────────────────────────────────────────── */
+
+.be-preview-shell {
+  background: #fff;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+}
+
+.be-preview-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ─── Inputs ───────────────────────────────────────────────────────────── */
+
+.be-input {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+}
+
+.be-input:focus {
+  outline: none;
+  border-color: var(--color-jordy-blue);
+  box-shadow: 0 0 0 3px rgba(122, 159, 219, 0.18);
+}
+
+.be-select {
+  background: transparent;
+  border: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-oxford-blue);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 4px;
+  flex: 1;
+}
+
+.be-select--full {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.be-select:focus,
+.be-select--full:focus {
+  outline: none;
+  border-color: var(--color-jordy-blue);
+  box-shadow: 0 0 0 3px rgba(122, 159, 219, 0.18);
+}
+
+/* ─── Status pill (dot + select wrapped in a chip) ─────────────────────── */
+
+.be-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+}
+
+.be-style-deck {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+/* ─── Tags ─────────────────────────────────────────────────────────────── */
+
+.be-tags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.be-tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.be-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-navy-10);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.be-tag-remove {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-muted);
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.be-tag-remove:hover {
+  color: var(--color-oxford-blue);
+}
+
+.be-tag-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.be-tag-input-row .be-input {
+  flex: 1;
+}
+
+/* ─── Badge conditions — lean Flair-style picker ───────────────────────── */
+
+.bc-root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  container-type: inline-size;
+}
+
+.bc-operator-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.bc-operator-label {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.bc-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.bc-radio input[type="radio"] {
+  accent-color: var(--color-oxford-blue);
+  width: 18px;
+  height: 18px;
+}
+
+.bc-radio strong {
+  font-weight: 700;
+}
+
+.bc-divider {
+  border: none;
+  border-top: 1px solid var(--bg-muted);
+  margin: 0;
+}
+
+.bc-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) minmax(80px, 120px) 1fr auto;
+  align-items: start;
+  gap: var(--space-3);
+}
+
+.bc-row + .bc-row {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--bg-muted);
+}
+
+@container (max-width: 640px) {
+  .bc-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "field comparator"
+      "value value"
+      "remove remove";
+    gap: var(--space-2);
+  }
+  .bc-row > .bc-select:nth-of-type(1) { grid-area: field; }
+  .bc-row > .bc-select:nth-of-type(2) { grid-area: comparator; }
+  .bc-value-cell { grid-area: value; }
+  .bc-row-remove {
+    grid-area: remove;
+    justify-self: end;
+  }
+}
+
+.bc-select {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  min-height: 38px;
+}
+
+.bc-select:focus {
+  outline: none;
+  border-color: var(--color-jordy-blue);
+  box-shadow: 0 0 0 3px rgba(122, 159, 219, 0.18);
+}
+
+.bc-value-cell {
+  min-width: 0;
+}
+
+.bc-chip-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bc-chip-input-field {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  min-height: 38px;
+}
+
+.bc-chip-input-field::placeholder {
+  color: var(--text-muted);
+}
+
+.bc-chip-input-field:focus {
+  outline: none;
+  border-color: var(--color-jordy-blue);
+  box-shadow: 0 0 0 3px rgba(122, 159, 219, 0.18);
+}
+
+.bc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-navy-10);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.bc-chip-remove {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.bc-chip-remove:hover {
+  color: var(--color-oxford-blue);
+}
+
+.bc-row-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  width: 38px;
+  height: 38px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.bc-row-remove:hover {
+  background: rgba(225, 89, 89, 0.08);
+  border-color: rgba(225, 89, 89, 0.35);
+  color: #a13030;
+}
+
+.bc-add-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-oxford-blue);
+}
+
+.bc-add-btn:hover {
+  background: var(--bg-muted);
+  border-color: var(--text-secondary);
+}
+
+.bc-add-btn-icon {
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 600;
+}
+
+/* ─── Nested groups ──────────────────────────────────────────────────────── */
+
+.bc-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.bc-group--nested {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border-left: 3px solid var(--color-navy-20);
+  background: var(--bg-page);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.bc-group--depth-1 { border-left-color: var(--color-navy-20); }
+.bc-group--depth-2 { border-left-color: var(--color-navy-40); }
+.bc-group--depth-3 { border-left-color: var(--color-navy-60); }
+.bc-group--depth-4 { border-left-color: var(--color-navy-80); }
+
+.bc-nested-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+
+.bc-nested-prefix {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bc-join-word {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.bc-nested-sep {
+  color: var(--text-secondary);
+}
+
+.bc-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-navy-10);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.bc-mode-pill.include:hover {
+  border-color: var(--border-strong);
+}
+
+.bc-mode-pill.exclude {
+  background: var(--color-coral-tint);
+  color: var(--color-coral-sale);
+  border-color: var(--color-coral-sale);
+}
+
+.bc-mode-pill.exclude:hover {
+  filter: brightness(0.97);
+}
+
+.bc-nested-operator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.bc-radio--compact {
+  font-size: 13px;
+  gap: 6px;
+}
+
+.bc-radio--compact input[type="radio"] {
+  width: 16px;
+  height: 16px;
+}
+
+.bc-nested-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.bc-nested-remove:hover {
+  background: rgba(225, 89, 89, 0.08);
+  border-color: rgba(225, 89, 89, 0.35);
+  color: #a13030;
+}
+
+.bc-group-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bc-add-btn--group {
+  color: var(--text-secondary);
+  border-style: dashed;
+}
+
+.bc-add-btn--group:hover {
+  color: var(--color-oxford-blue);
+  border-style: solid;
+}
+
+/* When nested groups stack inside an outer group, give them breathing room
+   from the preceding row block. */
+.bc-row + .bc-group--nested {
+  margin-top: var(--space-3);
+}

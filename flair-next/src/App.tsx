@@ -4,6 +4,7 @@ import StatCards from "./components/StatCards";
 import QuickActions from "./components/QuickActions";
 import CampaignList from "./components/CampaignList";
 import CampaignEditor from "./components/CampaignEditor";
+import BadgeEditor from "./components/BadgeEditor";
 import Settings from "./components/Settings";
 import GlobalStyles from "./components/GlobalStyles";
 import AutomationCenter from "./components/AutomationCenter";
@@ -247,29 +248,41 @@ export default function App() {
   const allCampaigns = [...badges, ...banners];
   const activeViewLabel = activeView;
 
-  // If editor is open, show it
+  // If editor is open, show it. Badge edits use the lean BadgeEditor;
+  // banner edits stay on the legacy CampaignEditor for now.
   if (editor) {
+    const isBadge = editor.type === "badge";
     return (
       <div className="app-shell">
         <div className="workspace">
           <Sidebar activeApp={activeView} onNavigate={handleNavigate} />
           <main className="content">
-            <section className="workspace-head">
-              <div>
-                <p className="workspace-kicker">Gerber Childrenswear</p>
-                <h1>Campaign Builder</h1>
-              </div>
-              <div className="workspace-head-actions">
-                <span className="workspace-pill">Live mode</span>
-              </div>
-            </section>
+            {!isBadge && (
+              <section className="workspace-head">
+                <div>
+                  <p className="workspace-kicker">Gerber Childrenswear</p>
+                  <h1>Campaign Builder</h1>
+                </div>
+                <div className="workspace-head-actions">
+                  <span className="workspace-pill">Live mode</span>
+                </div>
+              </section>
+            )}
             {notice && <div className="panel placeholder-msg">{notice}</div>}
-            <CampaignEditor
-              campaign={editor.campaign}
-              type={editor.type}
-              onSave={handleSave}
-              onCancel={handleCancelEdit}
-            />
+            {isBadge ? (
+              <BadgeEditor
+                campaign={editor.campaign}
+                onSave={handleSave}
+                onCancel={handleCancelEdit}
+              />
+            ) : (
+              <CampaignEditor
+                campaign={editor.campaign}
+                type={editor.type}
+                onSave={handleSave}
+                onCancel={handleCancelEdit}
+              />
+            )}
           </main>
         </div>
       </div>

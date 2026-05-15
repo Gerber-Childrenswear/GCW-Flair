@@ -3,6 +3,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  /* Establish a query container so the rows stack based on the builder's
+     own width, not the viewport. The BadgeEditor squeezes this into a
+     ~600-800px column at common viewports, well above the legacy 900px
+     viewport breakpoint below. */
+  container-type: inline-size;
 }
 
 .rule-group {
@@ -159,7 +164,7 @@
   padding: 0 10px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  background: var(--bg-muted);
+  background: var(--color-navy-10);
   color: var(--text-primary);
   font-size: 12px;
   font-weight: 600;
@@ -259,15 +264,59 @@
 }
 .rule-summary-text { word-break: break-word; }
 
-@media (max-width: 900px) {
+/* Container-width-aware 2x2 layout — fires when the rule builder itself
+   is narrow (e.g. inside the BadgeEditor's left column at common laptop
+   viewports). The static "chip" duplicates the field dropdown's selected
+   value, so it's hidden in this mode; the four interactive cells lay out
+   as a 2x2 grid (field + comparator on top, value + remove on bottom). */
+@container (max-width: 720px) {
   .rule-condition-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 8px;
   }
 
-  .rule-condition-chip,
+  .rule-condition-chip {
+    display: none;
+  }
+
   .rule-condition-static,
   .rule-select,
   .rule-input {
     width: 100%;
+  }
+
+  .rule-btn--remove {
+    justify-self: end;
+    align-self: center;
+  }
+
+  .rule-group-header {
+    align-items: flex-start;
+  }
+}
+
+/* Viewport fallback for browsers without container query support — same
+   2x2 collapse pattern. */
+@media (max-width: 900px) {
+  .rule-condition-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 8px;
+  }
+
+  .rule-condition-chip {
+    display: none;
+  }
+
+  .rule-condition-static,
+  .rule-select,
+  .rule-input {
+    width: 100%;
+  }
+
+  .rule-btn--remove {
+    justify-self: end;
+    align-self: center;
   }
 }
