@@ -604,12 +604,11 @@
 }
 
 .bc-add-btn--group {
-  color: var(--text-secondary);
+  color: var(--color-oxford-blue);
   border-style: dashed;
 }
 
 .bc-add-btn--group:hover {
-  color: var(--color-oxford-blue);
   border-style: solid;
 }
 
