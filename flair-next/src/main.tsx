@@ -13,6 +13,7 @@ import "./styles/rule-builder.css";
 import "./styles/placement-picker.css";
 import "./styles/analytics.css";
 import "./styles/settings-colors.css";
+import "./styles/global-styles.css";
 
 createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>

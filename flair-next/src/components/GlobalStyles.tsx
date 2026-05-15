@@ -1,108 +1,289 @@
-import { DESIGN_ASSETS, DESIGN_PRESETS, GERBER_COLORS, getDefaultDesignSystemConfig, getDesignPresetById } from "../data/design-system";
+// Global Styles — the canonical Style management surface.
+//
+// Lists every Style in the library with live Badge + Banner previews,
+// each row's per-Style usage count, and edit / delete actions. Style
+// editor opens in a follow-up slice.
+//
+// See Projects/2026-05-flair-app-redesign/_brief.md (Architecture decision
+// #2 — two surface configurations per Style; Countdown is a Banner
+// sub-element, not a peer surface).
 
-function toClassToken(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+import { useState } from "react";
+import { SEED_STYLES, SEED_STYLE_AUDIT_LOG } from "../data/style-palette";
+import { SEED_COLORS } from "../data/color-palette";
+import type { Style, BadgeStyleConfig, BannerStyleConfig } from "../types/style";
+import type { ColorId } from "../types/color";
+
+// Mock usage counts — replaced by real counts once Badges/Banners
+// reference Styles by ID.
+const MOCK_STYLE_USAGE: Record<string, { campaigns: number; instances: number }> = {
+  sty_default_navy:    { campaigns: 4, instances: 28 },
+  sty_summer_sale:     { campaigns: 3, instances: 17 },
+  sty_final_hours:     { campaigns: 2, instances: 9 },
+  sty_trust_pill:      { campaigns: 1, instances: 6 },
+  sty_soft_newsletter: { campaigns: 1, instances: 2 },
+};
+
+// Quick lookup from ColorId → hex for previews.
+function buildColorMap(): Record<ColorId, string> {
+  return Object.fromEntries(SEED_COLORS.map((c) => [c.id, c.hex]));
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Main page
+// ═══════════════════════════════════════════════════════════════════════════
+
 export default function GlobalStyles() {
-  const config = getDefaultDesignSystemConfig();
-  const defaultPreset = getDesignPresetById(config.defaultPresetId);
-  const defaultToneClass = `global-styles-swatch--${defaultPreset?.creative.stylePreset ?? "custom"}`;
+  const [styles] = useState<Style[]>(SEED_STYLES);
+  const [auditLog] = useState(SEED_STYLE_AUDIT_LOG);
+  const [search, setSearch] = useState("");
+
+  const colorMap = buildColorMap();
+
+  const visibleStyles = search.trim()
+    ? styles.filter((s) => {
+        const q = search.trim().toLowerCase();
+        return s.name.toLowerCase().includes(q) || s.description?.toLowerCase().includes(q);
+      })
+    : styles;
 
   return (
-    <div className="global-styles-page">
-      <section className="stats-grid">
-        <article className="panel stat-panel">
-          <div className="panel-head">
-            <h2>Default style</h2>
-            <span className="workspace-pill">Applied to new campaigns</span>
-          </div>
-          <div className="global-styles-default">
-            <div className={`global-styles-default-swatch ${defaultToneClass}`}>
-              <span>{defaultPreset?.label ?? "Default preset"}</span>
-              <strong>Campaign default</strong>
-            </div>
-            <p className="campaign-hub-copy">New badges and banners inherit this system preset before campaign-level overrides are applied.</p>
-          </div>
-        </article>
-
-        <article className="panel stat-panel">
-          <div className="panel-head">
-            <h2>Rule coverage</h2>
-            <span className="workspace-pill">Automatic mapping</span>
-          </div>
-          <div className="status-list">
-            <div className="status-row">
-              <span className="dot ok" />
-              <span>{config.productTagRules.length} product tag rules</span>
-            </div>
-            <div className="status-row">
-              <span className="dot warn" />
-              <span>{config.metafieldRules.length} metafield rules</span>
-            </div>
-            <div className="status-row">
-              <span className="dot idle" />
-              <span>{config.metaobjectRules.length} metaobject rules</span>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <section className="panel campaign-hub-panel">
-        <div className="panel-head">
+    <div className="row g-4">
+      <div className="col-12">
+        <div className="gs-page-head">
           <div>
-            <h2>Preset library</h2>
-            <p className="campaign-hub-copy">These are the house presets currently available across the editor, previews, and list cards.</p>
+            <div className="gs-eyebrow">Global Styles</div>
+            <h1 className="gs-title">Styles</h1>
+            <p className="gs-deck">
+              The visual library. Define a Style once — its Badge and Banner configurations together — and
+              every Badge or Banner that references it inherits the look. Edit the Style and every
+              instance using it updates. Colors are picked by name from{" "}
+              <strong>Settings → Colors</strong>; no hex inputs at this layer.
+            </p>
+          </div>
+          <div className="gs-page-actions">
+            <button type="button" className="sc-btn sc-btn--ghost" disabled title="Coming next slice">
+              Export JSON
+            </button>
+            <button type="button" className="sc-btn sc-btn--ghost" disabled title="Coming next slice">
+              Import JSON
+            </button>
+            <button type="button" className="sc-btn sc-btn--primary" disabled title="Coming next slice">
+              + Add Style
+            </button>
           </div>
         </div>
-        <div className="global-styles-preset-grid">
-          {DESIGN_PRESETS.map((preset) => (
-            <article key={preset.id} className="global-styles-preset-card">
-              <div className={`global-styles-preset-swatch global-styles-swatch--${preset.creative.stylePreset ?? "custom"}`}>
-                {preset.label}
-              </div>
-              <div className="campaign-hub-meta">{preset.id}</div>
-            </article>
-          ))}
+      </div>
+
+      <div className="col-12">
+        {/* Toolbar */}
+        <div className="gs-toolbar">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search Styles by name or description…"
+            className="gs-search"
+          />
+          {search && (
+            <button type="button" onClick={() => setSearch("")} className="sc-btn sc-btn--ghost">
+              Clear
+            </button>
+          )}
+          <div className="gs-count">
+            Showing <strong>{visibleStyles.length}</strong>
+            {visibleStyles.length !== styles.length && (
+              <span style={{ color: "var(--text-muted)" }}> of {styles.length}</span>
+            )}
+          </div>
         </div>
-      </section>
 
-      <section className="quick-grid global-styles-bottom-grid">
-        <article className="panel quick-panel">
-          <div className="panel-head">
-            <h3>Style assets</h3>
+        {/* Table */}
+        <div className="gs-table">
+          <div className="gs-table-head">
+            <div>Name</div>
+            <div>As Badge</div>
+            <div>As Banner</div>
+            <div>Used by</div>
+            <div className="gs-table-head-right">Actions</div>
           </div>
-          <div className="global-styles-list">
-            {DESIGN_ASSETS.map((asset) => (
-              <div key={asset.id} className="global-styles-list-row">
-                <strong>{asset.label}</strong>
-                <span>{asset.description}</span>
+          {visibleStyles.map((style) => {
+            const usage = MOCK_STYLE_USAGE[style.id] ?? { campaigns: 0, instances: 0 };
+            return (
+              <div key={style.id} className="gs-table-row">
+                <div>
+                  <div className="gs-table-name">{style.name}</div>
+                  {style.description && <div className="gs-table-desc">{style.description}</div>}
+                </div>
+                <div className="gs-preview-cell">
+                  {style.badge ? (
+                    <BadgePreview config={style.badge} colorMap={colorMap} label={style.name.toUpperCase()} />
+                  ) : (
+                    <span className="gs-preview-none">Not configured</span>
+                  )}
+                </div>
+                <div className="gs-preview-cell">
+                  {style.banner ? (
+                    <BannerPreview config={style.banner} colorMap={colorMap} label={style.name.toUpperCase()} />
+                  ) : (
+                    <span className="gs-preview-none">Not configured</span>
+                  )}
+                </div>
+                <div className="gs-table-used">
+                  {usage.campaigns > 0 ? (
+                    <>
+                      <strong>{usage.campaigns}</strong> campaign{usage.campaigns === 1 ? "" : "s"}
+                      <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{usage.instances} live instances</div>
+                    </>
+                  ) : (
+                    <span className="gs-table-used-empty">Not in use</span>
+                  )}
+                </div>
+                <div className="gs-table-actions">
+                  <button type="button" className="gs-row-action" disabled title="Editor coming next slice">
+                    Edit
+                  </button>
+                  <button type="button" className="gs-row-action gs-row-action--danger" disabled title="Delete coming next slice">
+                    Delete
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        </article>
+            );
+          })}
+        </div>
 
-        <article className="panel quick-panel">
-          <div className="panel-head">
-            <h3>Brand palette</h3>
-          </div>
-          <div className="global-styles-color-grid">
-            {GERBER_COLORS.slice(0, 10).map((color) => (
-              <div key={color.name} className="global-styles-color-chip">
-                <span className={`global-styles-color-dot global-styles-color-dot--${toClassToken(color.name)}`} />
-                <span>{color.name}</span>
-              </div>
+        {/* Audit log */}
+        <div className="panel gs-audit">
+          <div className="gs-audit-title">Recent changes · audit log</div>
+          <ul className="gs-audit-list">
+            {auditLog.slice(0, 8).map((entry) => (
+              <li key={entry.id} className="gs-audit-row">
+                <span className="gs-audit-ts">{new Date(entry.timestamp).toLocaleString()}</span>
+                <span className="gs-audit-action">{entry.action}</span>
+                <span>
+                  <strong>{entry.targetId}</strong>
+                  {entry.diff?.after && (
+                    <>
+                      <span style={{ color: "var(--text-secondary)" }}> — </span>
+                      <span>{String((entry.diff.after as { name?: string }).name ?? "")}</span>
+                    </>
+                  )}
+                </span>
+                <span className="gs-audit-actor">{entry.actor}</span>
+              </li>
             ))}
-          </div>
-        </article>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        <article className="panel quick-panel">
-          <div className="panel-head">
-            <h3>Current direction</h3>
-          </div>
-          <p>Global styles now act as the shared starting point for badges and banners, which keeps the UI aligned with the campaign-first model you asked for.</p>
-        </article>
-      </section>
+// ═══════════════════════════════════════════════════════════════════════════
+// Surface previews — render a Style's Badge / Banner configuration
+// ═══════════════════════════════════════════════════════════════════════════
+
+const BORDER_RADIUS_FOR_SHAPE: Record<string, string> = {
+  square: "0",
+  rounded: "4px",
+  pill: "999px",
+  tag: "0",
+};
+
+const SHADOW_FOR_LEVEL: Record<string, string> = {
+  none: "none",
+  sm: "0 1px 2px rgba(0,39,68,0.08)",
+  md: "0 2px 6px rgba(0,39,68,0.12)",
+};
+
+function BadgePreview({
+  config,
+  colorMap,
+  label,
+}: {
+  config: BadgeStyleConfig;
+  colorMap: Record<ColorId, string>;
+  label: string;
+}) {
+  const bg = colorMap[config.bgColor] ?? "#ccc";
+  const fg = colorMap[config.textColor] ?? "#000";
+  const border = config.borderColor ? colorMap[config.borderColor] : "transparent";
+
+  // Mixed left/right corner radii are produced by combining the two
+  // shape values — the four corner radius properties.
+  const left = BORDER_RADIUS_FOR_SHAPE[config.leftShape] ?? "4px";
+  const right = BORDER_RADIUS_FOR_SHAPE[config.rightShape] ?? "4px";
+
+  return (
+    <span
+      className="gs-badge-preview"
+      style={{
+        background: bg,
+        color: fg,
+        border: config.borderSize > 0 ? `${config.borderSize}px solid ${border}` : "none",
+        borderTopLeftRadius: left,
+        borderBottomLeftRadius: left,
+        borderTopRightRadius: right,
+        borderBottomRightRadius: right,
+        padding: `${Math.max(2, config.paddingY - 2)}px ${Math.max(6, config.paddingX - 2)}px`,
+        fontSize: Math.min(11, config.textSize),
+        letterSpacing: `${config.letterSpacing}em`,
+        boxShadow: SHADOW_FOR_LEVEL[config.shadow] ?? "none",
+        fontWeight: config.textStyle === "regular" ? 400 : config.textStyle === "medium" ? 500 : 700,
+        textTransform: config.textStyle === "bold-caps" ? "uppercase" : "none",
+      }}
+    >
+      {label.slice(0, 14)}
+    </span>
+  );
+}
+
+function BannerPreview({
+  config,
+  colorMap,
+  label,
+}: {
+  config: BannerStyleConfig;
+  colorMap: Record<ColorId, string>;
+  label: string;
+}) {
+  const bg = colorMap[config.bgColor] ?? "#ccc";
+  const border = config.borderColor ? colorMap[config.borderColor] : "transparent";
+
+  const headlineColor = colorMap[config.headline.color] ?? "#000";
+  const copyColor = colorMap[config.copy.color] ?? "#000";
+
+  return (
+    <div
+      className="gs-banner-preview"
+      style={{
+        background: bg,
+        border: config.borderSize > 0 ? `${config.borderSize}px solid ${border}` : "none",
+        boxShadow: SHADOW_FOR_LEVEL[config.shadow] ?? "none",
+      }}
+    >
+      <div
+        className="gs-banner-preview-headline"
+        style={{
+          color: headlineColor,
+          fontWeight: config.headline.weight,
+          fontStyle: config.headline.italic ? "italic" : "normal",
+          textTransform: config.headline.uppercase ? "uppercase" : "none",
+          letterSpacing: `${config.headline.letterSpacing}em`,
+        }}
+      >
+        {label}
+      </div>
+      <div
+        className="gs-banner-preview-copy"
+        style={{
+          color: copyColor,
+          fontWeight: config.copy.weight,
+          fontStyle: config.copy.italic ? "italic" : "normal",
+        }}
+      >
+        Supporting copy line goes here
+      </div>
     </div>
   );
 }

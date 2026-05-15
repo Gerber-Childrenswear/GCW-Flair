@@ -1,0 +1,293 @@
+/* Global Styles — the Style palette / management surface.
+ *
+ * Mirrors the layout patterns established in settings-colors.css with a
+ * gs-* class prefix. Each row in the table shows a Style: its name, its
+ * Badge configuration as a live preview, its Banner configuration as a
+ * live preview, the count of campaigns using it, and edit/delete actions.
+ */
+
+/* ─── Page header ─────────────────────────────────────────────────────────── */
+
+.gs-page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-6);
+  margin-bottom: var(--space-2);
+  flex-wrap: nowrap;
+}
+
+.gs-page-head > div:first-child {
+  min-width: 0;
+}
+
+.gs-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-1);
+}
+
+.gs-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 28px;
+  letter-spacing: -0.01em;
+  color: var(--color-oxford-blue);
+}
+
+.gs-deck {
+  margin-top: var(--space-2);
+  color: var(--text-secondary);
+  max-width: 720px;
+  line-height: 1.5;
+}
+
+.gs-page-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* ─── Toolbar ─────────────────────────────────────────────────────────────── */
+
+.gs-toolbar {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.gs-search {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.gs-search:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+  border-color: var(--color-focus);
+}
+
+.gs-count {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.gs-count strong {
+  color: var(--color-oxford-blue);
+}
+
+/* ─── Styles table ────────────────────────────────────────────────────────── */
+
+.gs-table {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.gs-table-head,
+.gs-table-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(160px, 1.1fr) minmax(220px, 1.4fr) 110px 120px;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  align-items: center;
+}
+
+.gs-table-head {
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.gs-table-head-right {
+  text-align: right;
+}
+
+.gs-table-row {
+  border-bottom: 1px solid var(--bg-muted);
+}
+
+.gs-table-row:last-child {
+  border-bottom: none;
+}
+
+.gs-table-row:hover {
+  background: var(--bg-muted);
+}
+
+.gs-table-name {
+  font-weight: 600;
+  color: var(--color-oxford-blue);
+  font-size: 14px;
+}
+
+.gs-table-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.gs-table-used {
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.gs-table-used-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 11px;
+}
+
+.gs-table-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.gs-row-action {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 0;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color 120ms ease;
+}
+
+.gs-row-action:hover {
+  text-decoration-color: currentColor;
+  color: var(--color-oxford-blue);
+}
+
+.gs-row-action--danger {
+  color: var(--color-coral-sale);
+}
+
+/* ─── Surface previews (Badge / Banner mini-renders) ─────────────────────── */
+
+.gs-preview-cell {
+  display: flex;
+  align-items: center;
+}
+
+.gs-preview-none {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* Badge preview */
+.gs-badge-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+}
+
+/* Banner preview — scaled-down representation */
+.gs-banner-preview {
+  width: 100%;
+  max-width: 220px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+.gs-banner-preview-headline {
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gs-banner-preview-copy {
+  font-size: 9px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.92;
+}
+
+/* ─── Audit log ───────────────────────────────────────────────────────────── */
+
+.gs-audit {
+  padding: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.gs-audit-title {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+  font-weight: 600;
+}
+
+.gs-audit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.gs-audit-row {
+  display: grid;
+  grid-template-columns: 180px 110px 1fr 220px;
+  gap: var(--space-3);
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--bg-muted);
+  font-size: 12px;
+}
+
+.gs-audit-ts {
+  color: var(--text-secondary);
+}
+
+.gs-audit-action {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+  width: fit-content;
+}
+
+.gs-audit-actor {
+  color: var(--text-secondary);
+  text-align: right;
+}
