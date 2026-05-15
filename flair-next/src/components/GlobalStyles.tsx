@@ -34,7 +34,19 @@ function buildColorMap(): Record<ColorId, string> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export default function GlobalStyles() {
-  const [styles] = useState<Style[]>(SEED_STYLES);
+  const [styles, setStyles] = useState<Style[]>(SEED_STYLES);
+
+  // Radio-button semantics: exactly one Style carries isDefault at a time.
+  // New badges and banners inherit the default when no Style is picked.
+  function handleSetDefault(styleId: string) {
+    setStyles((prev) =>
+      prev.map((s) => ({
+        ...s,
+        isDefault: s.id === styleId,
+        updatedAt: s.id === styleId || s.isDefault ? new Date().toISOString() : s.updatedAt,
+      })),
+    );
+  }
   const [auditLog] = useState(SEED_STYLE_AUDIT_LOG);
   const [search, setSearch] = useState("");
 
@@ -112,7 +124,29 @@ export default function GlobalStyles() {
             return (
               <div key={style.id} className="gs-table-row">
                 <div>
-                  <div className="gs-table-name">{style.name}</div>
+                  <div className="gs-table-name">
+                    {style.name}
+                    {style.isDefault && (
+                      <span
+                        title="Default Style — new badges and banners inherit this when no Style is picked"
+                        style={{
+                          display: "inline-block",
+                          marginLeft: 8,
+                          padding: "2px 8px",
+                          borderRadius: 999,
+                          background: "var(--color-ronchi)",
+                          color: "var(--color-oxford-blue)",
+                          fontSize: 10,
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.06em",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        Default
+                      </span>
+                    )}
+                  </div>
                   {style.description && <div className="gs-table-desc">{style.description}</div>}
                 </div>
                 <div className="gs-preview-cell">
@@ -140,6 +174,16 @@ export default function GlobalStyles() {
                   )}
                 </div>
                 <div className="gs-table-actions">
+                  {!style.isDefault && (
+                    <button
+                      type="button"
+                      className="gs-row-action"
+                      onClick={() => handleSetDefault(style.id)}
+                      title="Make this the default Style for new badges and banners"
+                    >
+                      Set as default
+                    </button>
+                  )}
                   <button type="button" className="gs-row-action" disabled title="Editor coming next slice">
                     Edit
                   </button>

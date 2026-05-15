@@ -1,6 +1,8 @@
 import { useState } from "react";
 import SettingsColors from "./SettingsColors";
 import SettingsBrandToken from "./SettingsBrandToken";
+import SettingsAppBlocks from "./SettingsAppBlocks";
+import SettingsThemeTriggers from "./SettingsThemeTriggers";
 import LayoutLibrary from "./LayoutLibrary";
 import {
   SEED_SHAPES,
@@ -29,7 +31,9 @@ type SettingsSubView =
   | "textsizes"
   | "textstyles"
   | "badge_layouts"
-  | "banner_layouts";
+  | "banner_layouts"
+  | "theme_triggers"
+  | "app_blocks";
 
 export default function Settings({ onNavigate, onSelectLayout }: SettingsProps) {
   const [subView, setSubView] = useState<SettingsSubView>("general");
@@ -260,6 +264,8 @@ export default function Settings({ onNavigate, onSelectLayout }: SettingsProps) 
             onSelectLayout={(layout) => onSelectLayout?.(layout)}
           />
         )}
+        {subView === "theme_triggers" && <SettingsThemeTriggers />}
+        {subView === "app_blocks" && <SettingsAppBlocks />}
       </div>
     );
   }
@@ -379,6 +385,30 @@ export default function Settings({ onNavigate, onSelectLayout }: SettingsProps) 
                 <span className="settings-info-subtitle muted">
                   Placement patterns for where banners appear (announcement bars, PDP strips,
                   cart drawer slots). Admin-curated; coordinators pick by name.
+                </span>
+              </span>
+              <span className="settings-chevron">›</span>
+            </button>
+
+            <button className="settings-row settings-row--nav" onClick={() => setSubView("theme_triggers")}>
+              <span className="settings-icon settings-icon--nav">⚡</span>
+              <span className="settings-info">
+                <span className="settings-info-title">Theme Triggers</span>
+                <span className="settings-info-subtitle muted">
+                  Storefront events that re-render Flair (cart:update, variant:change, custom DOM
+                  events). Presets cover popular themes; Event/Content for everything else.
+                </span>
+              </span>
+              <span className="settings-chevron">›</span>
+            </button>
+
+            <button className="settings-row settings-row--nav" onClick={() => setSubView("app_blocks")}>
+              <span className="settings-icon settings-icon--nav">⛬</span>
+              <span className="settings-info">
+                <span className="settings-info-title">App Blocks</span>
+                <span className="settings-info-subtitle muted">
+                  Status of Flair app blocks installed in your Shopify theme. Read-only stub;
+                  full integration pending Shopify Admin API wiring (see code note for Nick).
                 </span>
               </span>
               <span className="settings-chevron">›</span>

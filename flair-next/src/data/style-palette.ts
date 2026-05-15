@@ -39,6 +39,7 @@ export const SEED_STYLES: Style[] = [
     id: "sty_default_navy",
     name: "Default Navy",
     description: "The system default. Solid Oxford Blue with white text — the safe answer when a campaign doesn't specify a style.",
+    isDefault: true,
     badge: {
       bgColor: C.oxfordBlue,
       textColor: C.white,

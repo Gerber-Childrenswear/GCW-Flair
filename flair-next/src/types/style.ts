@@ -65,12 +65,18 @@ export type BannerStyleConfig = {
 // ─── Style ───────────────────────────────────────────────────────────────────
 // A Style may be defined for only one surface — the other slot stays null
 // and that Style is simply not pickable for that surface (per Decision #2).
+//
+// isDefault: exactly one Style at a time carries the system-default flag.
+// New badges and banners inherit it when the user doesn't explicitly pick
+// a Style. Setting one Style as default clears the flag on the previous
+// default (radio-button semantics).
 export type Style = {
   id: StyleId;
   name: string;          // display label, e.g. "Summer Sale"
   description?: string;
   badge: BadgeStyleConfig | null;
   banner: BannerStyleConfig | null;
+  isDefault?: boolean;
   createdAt: string;
   updatedAt: string;
 };
