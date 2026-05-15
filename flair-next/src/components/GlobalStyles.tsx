@@ -1,8 +1,9 @@
 // Global Styles — the canonical Style management surface.
 //
 // Lists every Style in the library with live Badge + Banner previews,
-// each row's per-Style usage count, and edit / delete actions. Style
-// editor opens in a follow-up slice.
+// each row's per-Style usage count, and edit / delete actions. The Edit
+// action mounts StyleEditor — a two-pane Badge/Banner picker that builds
+// the whole Style from curated brand tokens (no raw px/hex anywhere).
 //
 // See Projects/2026-05-flair-app-redesign/_brief.md (Architecture decision
 // #2 — two surface configurations per Style; Countdown is a Banner
@@ -10,9 +11,9 @@
 
 import { useState } from "react";
 import { SEED_STYLES, SEED_STYLE_AUDIT_LOG } from "../data/style-palette";
-import { SEED_COLORS } from "../data/color-palette";
-import type { Style, BadgeStyleConfig, BannerStyleConfig } from "../types/style";
-import type { ColorId } from "../types/color";
+import { BadgePreview, BannerPreview } from "./StylePreviews";
+import StyleEditor from "./StyleEditor";
+import type { Style } from "../types/style";
 
 // Mock usage counts — replaced by real counts once Badges/Banners
 // reference Styles by ID.
@@ -24,17 +25,15 @@ const MOCK_STYLE_USAGE: Record<string, { campaigns: number; instances: number }>
   sty_soft_newsletter: { campaigns: 1, instances: 2 },
 };
 
-// Quick lookup from ColorId → hex for previews.
-function buildColorMap(): Record<ColorId, string> {
-  return Object.fromEntries(SEED_COLORS.map((c) => [c.id, c.hex]));
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Main page
 // ═══════════════════════════════════════════════════════════════════════════
 
 export default function GlobalStyles() {
   const [styles, setStyles] = useState<Style[]>(SEED_STYLES);
+  const [auditLog] = useState(SEED_STYLE_AUDIT_LOG);
+  const [search, setSearch] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Radio-button semantics: exactly one Style carries isDefault at a time.
   // New badges and banners inherit the default when no Style is picked.
@@ -47,11 +46,31 @@ export default function GlobalStyles() {
       })),
     );
   }
-  const [auditLog] = useState(SEED_STYLE_AUDIT_LOG);
-  const [search, setSearch] = useState("");
 
-  const colorMap = buildColorMap();
+  function handleSaveStyle(updated: Style) {
+    setStyles((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+    setEditingId(null);
+  }
 
+  // ─── Editor mode ────────────────────────────────────────────────────────
+  if (editingId) {
+    const styleBeingEdited = styles.find((s) => s.id === editingId);
+    if (styleBeingEdited) {
+      return (
+        <div className="row g-4">
+          <div className="col-12">
+            <StyleEditor
+              style={styleBeingEdited}
+              onSave={handleSaveStyle}
+              onCancel={() => setEditingId(null)}
+            />
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ─── List mode ──────────────────────────────────────────────────────────
   const visibleStyles = search.trim()
     ? styles.filter((s) => {
         const q = search.trim().toLowerCase();
@@ -124,41 +143,45 @@ export default function GlobalStyles() {
             return (
               <div key={style.id} className="gs-table-row">
                 <div>
-                  <div className="gs-table-name">
-                    {style.name}
-                    {style.isDefault && (
-                      <span
-                        title="Default Style — new badges and banners inherit this when no Style is picked"
-                        style={{
-                          display: "inline-block",
-                          marginLeft: 8,
-                          padding: "2px 8px",
-                          borderRadius: 999,
-                          background: "var(--color-ronchi)",
-                          color: "var(--color-oxford-blue)",
-                          fontSize: 10,
-                          fontWeight: 700,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.06em",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        Default
-                      </span>
-                    )}
-                  </div>
-                  {style.description && <div className="gs-table-desc">{style.description}</div>}
+                  <div className="gs-table-name">{style.name}</div>
+                  {style.isDefault ? (
+                    <span
+                      className="gs-default-pill"
+                      title="Default Style — new badges and banners inherit this when no Style is picked"
+                    >
+                      Default
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="gs-set-default-link"
+                      onClick={() => handleSetDefault(style.id)}
+                      title="Make this the default Style for new badges and banners"
+                    >
+                      Set as default
+                    </button>
+                  )}
                 </div>
                 <div className="gs-preview-cell">
                   {style.badge ? (
-                    <BadgePreview config={style.badge} colorMap={colorMap} label={style.name.toUpperCase()} />
+                    <BadgePreview
+                      config={style.badge}
+                      label={style.name.toUpperCase().slice(0, 14)}
+                      scale={0.7}
+                    />
                   ) : (
                     <span className="gs-preview-none">Not configured</span>
                   )}
                 </div>
                 <div className="gs-preview-cell">
                   {style.banner ? (
-                    <BannerPreview config={style.banner} colorMap={colorMap} label={style.name.toUpperCase()} />
+                    <BannerPreview
+                      config={style.banner}
+                      headlineText={style.name.toUpperCase()}
+                      copyText="Supporting copy line goes here"
+                      detailsText="Terms apply"
+                      scale={0.55}
+                    />
                   ) : (
                     <span className="gs-preview-none">Not configured</span>
                   )}
@@ -174,21 +197,12 @@ export default function GlobalStyles() {
                   )}
                 </div>
                 <div className="gs-table-actions">
-                  {!style.isDefault && (
-                    <button
-                      type="button"
-                      className="gs-row-action"
-                      onClick={() => handleSetDefault(style.id)}
-                      title="Make this the default Style for new badges and banners"
-                    >
-                      Set as default
-                    </button>
-                  )}
-                  <button type="button" className="gs-row-action" disabled title="Editor coming next slice">
+                  <button
+                    type="button"
+                    className="gs-row-action"
+                    onClick={() => setEditingId(style.id)}
+                  >
                     Edit
-                  </button>
-                  <button type="button" className="gs-row-action gs-row-action--danger" disabled title="Delete coming next slice">
-                    Delete
                   </button>
                 </div>
               </div>
@@ -218,115 +232,6 @@ export default function GlobalStyles() {
             ))}
           </ul>
         </div>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Surface previews — render a Style's Badge / Banner configuration
-// ═══════════════════════════════════════════════════════════════════════════
-
-const BORDER_RADIUS_FOR_SHAPE: Record<string, string> = {
-  square: "0",
-  rounded: "4px",
-  pill: "999px",
-  tag: "0",
-};
-
-const SHADOW_FOR_LEVEL: Record<string, string> = {
-  none: "none",
-  sm: "0 1px 2px rgba(0,39,68,0.08)",
-  md: "0 2px 6px rgba(0,39,68,0.12)",
-};
-
-function BadgePreview({
-  config,
-  colorMap,
-  label,
-}: {
-  config: BadgeStyleConfig;
-  colorMap: Record<ColorId, string>;
-  label: string;
-}) {
-  const bg = colorMap[config.bgColor] ?? "#ccc";
-  const fg = colorMap[config.textColor] ?? "#000";
-  const border = config.borderColor ? colorMap[config.borderColor] : "transparent";
-
-  // Mixed left/right corner radii are produced by combining the two
-  // shape values — the four corner radius properties.
-  const left = BORDER_RADIUS_FOR_SHAPE[config.leftShape] ?? "4px";
-  const right = BORDER_RADIUS_FOR_SHAPE[config.rightShape] ?? "4px";
-
-  return (
-    <span
-      className="gs-badge-preview"
-      style={{
-        background: bg,
-        color: fg,
-        border: config.borderSize > 0 ? `${config.borderSize}px solid ${border}` : "none",
-        borderTopLeftRadius: left,
-        borderBottomLeftRadius: left,
-        borderTopRightRadius: right,
-        borderBottomRightRadius: right,
-        padding: `${Math.max(2, config.paddingY - 2)}px ${Math.max(6, config.paddingX - 2)}px`,
-        fontSize: Math.min(11, config.textSize),
-        letterSpacing: `${config.letterSpacing}em`,
-        boxShadow: SHADOW_FOR_LEVEL[config.shadow] ?? "none",
-        fontWeight: config.textStyle === "regular" ? 400 : config.textStyle === "medium" ? 500 : 700,
-        textTransform: config.textStyle === "bold-caps" ? "uppercase" : "none",
-      }}
-    >
-      {label.slice(0, 14)}
-    </span>
-  );
-}
-
-function BannerPreview({
-  config,
-  colorMap,
-  label,
-}: {
-  config: BannerStyleConfig;
-  colorMap: Record<ColorId, string>;
-  label: string;
-}) {
-  const bg = colorMap[config.bgColor] ?? "#ccc";
-  const border = config.borderColor ? colorMap[config.borderColor] : "transparent";
-
-  const headlineColor = colorMap[config.headline.color] ?? "#000";
-  const copyColor = colorMap[config.copy.color] ?? "#000";
-
-  return (
-    <div
-      className="gs-banner-preview"
-      style={{
-        background: bg,
-        border: config.borderSize > 0 ? `${config.borderSize}px solid ${border}` : "none",
-        boxShadow: SHADOW_FOR_LEVEL[config.shadow] ?? "none",
-      }}
-    >
-      <div
-        className="gs-banner-preview-headline"
-        style={{
-          color: headlineColor,
-          fontWeight: config.headline.weight,
-          fontStyle: config.headline.italic ? "italic" : "normal",
-          textTransform: config.headline.uppercase ? "uppercase" : "none",
-          letterSpacing: `${config.headline.letterSpacing}em`,
-        }}
-      >
-        {label}
-      </div>
-      <div
-        className="gs-banner-preview-copy"
-        style={{
-          color: copyColor,
-          fontWeight: config.copy.weight,
-          fontStyle: config.copy.italic ? "italic" : "normal",
-        }}
-      >
-        Supporting copy line goes here
       </div>
     </div>
   );

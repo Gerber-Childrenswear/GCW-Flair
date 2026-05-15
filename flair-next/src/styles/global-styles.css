@@ -98,7 +98,7 @@
 .gs-table-head,
 .gs-table-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(160px, 1.1fr) minmax(220px, 1.4fr) 110px 120px;
+  grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) minmax(220px, 1.3fr) 110px 70px;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   align-items: center;
@@ -136,11 +136,38 @@
   font-size: 14px;
 }
 
-.gs-table-desc {
+.gs-default-pill {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-ronchi);
+  color: var(--color-oxford-blue);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.gs-set-default-link {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 11px;
   color: var(--text-secondary);
-  line-height: 1.4;
-  margin-top: 2px;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color 120ms ease, color 120ms ease;
+}
+
+.gs-set-default-link:hover {
+  color: var(--color-oxford-blue);
+  text-decoration-color: currentColor;
 }
 
 .gs-table-used {
@@ -290,4 +317,364 @@
 .gs-audit-actor {
   color: var(--text-secondary);
   text-align: right;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Style Editor (StyleEditor.tsx) — two-pane Badge/Banner picker.
+ *
+ * Every field is a dropdown sourced from Settings → Brand tokens. The
+ * editor never holds raw px or hex; resolvers translate token IDs into
+ * concrete values at render time.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+.se-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.se-editor-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--bg-muted);
+}
+
+.se-editor-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.se-editor-name {
+  flex: 1;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--color-oxford-blue);
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  letter-spacing: -0.01em;
+}
+
+.se-editor-name:hover {
+  border-color: var(--bg-muted);
+}
+
+.se-editor-name:focus {
+  outline: none;
+  border-color: var(--color-jordy-blue);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(122, 159, 219, 0.18);
+}
+
+.se-editor-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.se-editor-desc {
+  width: 100%;
+  border: 1px solid var(--bg-muted);
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.se-editor-desc:focus {
+  outline: none;
+  border-color: var(--color-jordy-blue);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(122, 159, 219, 0.18);
+}
+
+/* ─── Two-pane layout ───────────────────────────────────────────────────── */
+
+.se-panes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .se-panes { grid-template-columns: 1fr; }
+}
+
+.se-pane-shell {
+  position: relative;
+}
+
+.se-pane {
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.se-pane-empty {
+  align-items: center;
+  text-align: center;
+  padding: var(--space-6);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--bg-surface),
+    var(--bg-surface) 8px,
+    rgba(122, 159, 219, 0.04) 8px,
+    rgba(122, 159, 219, 0.04) 16px
+  );
+}
+
+.se-pane-empty-deck {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 320px;
+}
+
+.se-pane-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--color-oxford-blue);
+}
+
+.se-pane-disable {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 2;
+  background: transparent;
+  border: 1px solid var(--bg-muted);
+  color: var(--text-secondary);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.se-pane-disable:hover {
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+/* ─── Preview shell sits at the top of each pane ────────────────────────── */
+
+.se-preview-shell {
+  background: #fff;
+  border: 1px dashed var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
+  margin-bottom: var(--space-2);
+}
+
+/* ─── Section labels ────────────────────────────────────────────────────── */
+
+.se-section-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--bg-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.se-section-label:first-of-type,
+.se-pane > .se-section-label:nth-of-type(1) {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+/* ─── Fields ────────────────────────────────────────────────────────────── */
+
+.se-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.se-field-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.se-field-with-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.se-field-with-meta .se-wcag {
+  align-self: flex-start;
+}
+
+/* ─── Picker (compact dropdown shared by ColorField + TokenField) ───────── */
+
+.se-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-primary);
+  min-height: 32px;
+  user-select: none;
+}
+
+.se-picker:hover {
+  border-color: var(--color-jordy-blue);
+}
+
+.se-picker:focus {
+  outline: none;
+  border-color: var(--color-jordy-blue);
+  box-shadow: 0 0 0 3px rgba(122, 159, 219, 0.18);
+}
+
+.se-picker-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.se-picker-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  flex-shrink: 0;
+}
+
+.se-picker-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.se-picker-chev {
+  color: var(--text-secondary);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.se-picker-pop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 24px rgba(22, 29, 37, 0.12);
+  z-index: 30;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.se-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.se-picker-item:hover {
+  background: rgba(122, 159, 219, 0.12);
+}
+
+.se-picker-item.is-active {
+  background: rgba(122, 159, 219, 0.22);
+  font-weight: 600;
+}
+
+/* ─── Banner tier fieldset (Headline / Copy / Details) ──────────────────── */
+
+.se-tier {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: rgba(122, 159, 219, 0.05);
+  border: 1px solid rgba(122, 159, 219, 0.15);
+  border-radius: var(--radius-sm);
+}
+
+.se-tier-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* ─── WCAG indicator (shared with badge editor + banner tiers) ──────────── */
+
+.se-wcag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.se-wcag-ratio {
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.wcag--aaa {
+  background: rgba(74, 154, 110, 0.16);
+  color: #2e6a48;
+}
+
+.wcag--aa {
+  background: rgba(242, 199, 92, 0.22);
+  color: #8a6a17;
+}
+
+.wcag--fail {
+  background: rgba(225, 89, 89, 0.18);
+  color: #a13030;
 }

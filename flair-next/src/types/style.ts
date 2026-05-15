@@ -1,33 +1,37 @@
 // Global Style types — the canonical visual library of Flair.
 //
 // One Style holds two full surface configurations (Badge + Banner). Each
-// surface is independent — no shared/inheritance layer. Colors are
-// referenced by stable ColorId from Settings → Colors; no hex inputs in
-// the Style editor.
+// surface is independent — no shared/inheritance layer.
+//
+// Every visual property is a reference to a curated brand token from
+// Settings → Brand (color, shape, border, padding, shadow, text size,
+// text style, letter spacing). No raw px / hex / css values land in the
+// Style record — that's the Phase 2 cascade protection from Decision #5.
+// Edit a token in Settings → it cascades to every Style using it → which
+// cascades to every Badge / Banner using those Styles.
 //
 // See Projects/2026-05-flair-app-redesign/_brief.md (Architecture decision
 // #2 — two surface configurations; Countdown is a Banner sub-element).
 
 import type { ColorId } from "./color";
+import type {
+  ShapeId,
+  BorderId,
+  PaddingId,
+  ShadowId,
+  TextSizeId,
+  TextStyleId,
+  LetterSpacingId,
+} from "./brand-tokens";
 
-export type StyleId = string; // e.g. "sty_summer_sale"
-
-// ─── Shape vocabulary (Badge only — Banners are rectangular) ────────────────
-export type BadgeShape = "square" | "rounded" | "pill" | "tag";
-
-// ─── Shadow scale (shared across surfaces) ───────────────────────────────────
-export type ShadowLevel = "none" | "sm" | "md";
-
-// ─── Text style presets (Badge label only — banners use per-tier weights) ───
-export type BadgeTextStyle = "regular" | "medium" | "bold-caps";
+export type StyleId = string;
 
 // ─── Banner text tier (Headline / Copy / Details) ───────────────────────────
+// Each tier references typography tokens by ID — same enforcement as colors.
 export type BannerTextTier = {
-  size: number;            // px
-  weight: 400 | 500 | 600 | 700;
-  italic: boolean;
-  uppercase: boolean;
-  letterSpacing: number;   // em
+  textSize: TextSizeId;
+  textStyle: TextStyleId;
+  letterSpacing: LetterSpacingId;
   color: ColorId;
 };
 
@@ -35,16 +39,15 @@ export type BannerTextTier = {
 export type BadgeStyleConfig = {
   bgColor: ColorId;
   textColor: ColorId;
-  borderColor: ColorId | null; // null = no border (transparent)
-  borderSize: number;          // px
-  leftShape: BadgeShape;
-  rightShape: BadgeShape;
-  textSize: number;            // px
-  textStyle: BadgeTextStyle;
-  paddingX: number;            // px
-  paddingY: number;            // px
-  letterSpacing: number;       // em
-  shadow: ShadowLevel;
+  borderColor: ColorId | null;
+  borderSize: BorderId;
+  leftShape: ShapeId;
+  rightShape: ShapeId;
+  textSize: TextSizeId;
+  textStyle: TextStyleId;
+  padding: PaddingId;
+  letterSpacing: LetterSpacingId;
+  shadow: ShadowId;
 };
 
 // ─── Banner surface configuration ────────────────────────────────────────────
@@ -53,10 +56,9 @@ export type BadgeStyleConfig = {
 export type BannerStyleConfig = {
   bgColor: ColorId;
   borderColor: ColorId | null;
-  borderSize: number;
-  paddingX: number;
-  paddingY: number;
-  shadow: ShadowLevel;
+  borderSize: BorderId;
+  padding: PaddingId;
+  shadow: ShadowId;
   headline: BannerTextTier;
   copy: BannerTextTier;
   details: BannerTextTier;
@@ -72,7 +74,7 @@ export type BannerStyleConfig = {
 // default (radio-button semantics).
 export type Style = {
   id: StyleId;
-  name: string;          // display label, e.g. "Summer Sale"
+  name: string;
   description?: string;
   badge: BadgeStyleConfig | null;
   banner: BannerStyleConfig | null;
@@ -88,7 +90,8 @@ export type StyleAuditAction =
   | "edit_badge"
   | "edit_banner"
   | "delete"
-  | "duplicate";
+  | "duplicate"
+  | "set_default";
 
 export type StyleAuditEntry = {
   id: string;

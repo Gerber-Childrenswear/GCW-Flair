@@ -1,21 +1,15 @@
 // Style palette seed data — initial population of Global Styles.
 //
-// Each Style references colors by ID from data/color-palette.ts so the
-// cascade demonstrated in the brief (edit a color in Settings → all Styles
-// using it shift → all instances render the new color) works end-to-end
-// in the prototype.
-//
-// See Projects/2026-05-flair-app-redesign/_brief.md (Architecture decision
-// #2 + Decision #5).
+// Every visual property is a token-ID reference (from data/color-palette.ts
+// or data/brand-tokens.ts). No raw values land here — Decision #5 cascade
+// protection. Edit a token upstream and every Style using it shifts.
 
 import type { Style, StyleAuditEntry } from "../types/style";
 
 const SEED_TIMESTAMP = new Date().toISOString();
 const SEED_ACTOR = "darilee@gerberchildrenswear.com";
 
-// ─── Color IDs from the seeded palette (data/color-palette.ts) ──────────────
-// Keeping these as named constants so the seed reads clearly. In production
-// the editor picks color IDs via the Settings → Colors dropdown.
+// ─── Token shortcuts (read clearly in the seed below) ──────────────────────
 const C = {
   oxfordBlue:   "clr_001",
   jordyBlue:    "clr_002",
@@ -30,10 +24,29 @@ const C = {
   coralTint:    "clr_019",
 };
 
+const S = { square: "shp_square", rounded: "shp_rounded", pill: "shp_pill", tag: "shp_tag" };
+const B = { none: "brd_none", thin: "brd_thin", medium: "brd_medium", thick: "brd_thick" };
+const P = { tight: "pad_tight", normal: "pad_normal", spacious: "pad_spacious", generous: "pad_generous" };
+const SH = { none: "shd_none", soft: "shd_soft", card: "shd_card", lifted: "shd_lifted" };
+const TSZ = {
+  caption: "tsz_caption",
+  small:   "tsz_small",
+  body:    "tsz_body",
+  bodyLg:  "tsz_body_lg",
+  h4:      "tsz_h4",
+  h3:      "tsz_h3",
+};
+const TST = {
+  regular:  "tst_regular",
+  medium:   "tst_medium",
+  semibold: "tst_semibold",
+  bold:     "tst_bold",
+  boldCaps: "tst_bold_caps",
+  italic:   "tst_italic",
+};
+const LSP = { tight: "lsp_tight", normal: "lsp_normal", wide: "lsp_wide", wider: "lsp_wider" };
+
 // ─── Seeded Styles ───────────────────────────────────────────────────────────
-// Five starter Styles spanning the brand vocabulary. Designed to show the
-// editor's range: solid-dark, sale-red, soft-light, accent-pill,
-// banner-only.
 export const SEED_STYLES: Style[] = [
   {
     id: "sty_default_navy",
@@ -44,26 +57,24 @@ export const SEED_STYLES: Style[] = [
       bgColor: C.oxfordBlue,
       textColor: C.white,
       borderColor: null,
-      borderSize: 0,
-      leftShape: "rounded",
-      rightShape: "rounded",
-      textSize: 12,
-      textStyle: "bold-caps",
-      paddingX: 12,
-      paddingY: 6,
-      letterSpacing: 0.06,
-      shadow: "none",
+      borderSize: B.none,
+      leftShape: S.rounded,
+      rightShape: S.rounded,
+      textSize: TSZ.small,
+      textStyle: TST.boldCaps,
+      padding: P.normal,
+      letterSpacing: LSP.wide,
+      shadow: SH.none,
     },
     banner: {
       bgColor: C.oxfordBlue,
       borderColor: null,
-      borderSize: 0,
-      paddingX: 24,
-      paddingY: 18,
-      shadow: "none",
-      headline: { size: 22, weight: 700, italic: false, uppercase: true, letterSpacing: 0.06, color: C.white },
-      copy:     { size: 14, weight: 400, italic: false, uppercase: false, letterSpacing: 0,    color: C.white },
-      details:  { size: 12, weight: 400, italic: true,  uppercase: false, letterSpacing: 0,    color: C.white },
+      borderSize: B.none,
+      padding: P.spacious,
+      shadow: SH.none,
+      headline: { textSize: TSZ.h4, textStyle: TST.boldCaps, letterSpacing: LSP.wide, color: C.white },
+      copy:     { textSize: TSZ.body, textStyle: TST.regular, letterSpacing: LSP.normal, color: C.white },
+      details:  { textSize: TSZ.small, textStyle: TST.italic, letterSpacing: LSP.normal, color: C.white },
     },
     createdAt: SEED_TIMESTAMP,
     updatedAt: SEED_TIMESTAMP,
@@ -76,26 +87,24 @@ export const SEED_STYLES: Style[] = [
       bgColor: C.maize,
       textColor: C.oxfordBlue,
       borderColor: null,
-      borderSize: 0,
-      leftShape: "pill",
-      rightShape: "pill",
-      textSize: 12,
-      textStyle: "bold-caps",
-      paddingX: 14,
-      paddingY: 6,
-      letterSpacing: 0.06,
-      shadow: "none",
+      borderSize: B.none,
+      leftShape: S.pill,
+      rightShape: S.pill,
+      textSize: TSZ.small,
+      textStyle: TST.boldCaps,
+      padding: P.normal,
+      letterSpacing: LSP.wide,
+      shadow: SH.none,
     },
     banner: {
       bgColor: C.maize,
       borderColor: null,
-      borderSize: 0,
-      paddingX: 24,
-      paddingY: 18,
-      shadow: "none",
-      headline: { size: 22, weight: 700, italic: false, uppercase: true, letterSpacing: 0.06, color: C.oxfordBlue },
-      copy:     { size: 14, weight: 400, italic: false, uppercase: false, letterSpacing: 0,    color: C.oxfordBlue },
-      details:  { size: 12, weight: 400, italic: true,  uppercase: false, letterSpacing: 0,    color: C.oxfordBlue },
+      borderSize: B.none,
+      padding: P.spacious,
+      shadow: SH.none,
+      headline: { textSize: TSZ.h4, textStyle: TST.boldCaps, letterSpacing: LSP.wide, color: C.oxfordBlue },
+      copy:     { textSize: TSZ.body, textStyle: TST.regular, letterSpacing: LSP.normal, color: C.oxfordBlue },
+      details:  { textSize: TSZ.small, textStyle: TST.italic, letterSpacing: LSP.normal, color: C.oxfordBlue },
     },
     createdAt: SEED_TIMESTAMP,
     updatedAt: SEED_TIMESTAMP,
@@ -108,26 +117,24 @@ export const SEED_STYLES: Style[] = [
       bgColor: C.coralSale,
       textColor: C.white,
       borderColor: null,
-      borderSize: 0,
-      leftShape: "square",
-      rightShape: "square",
-      textSize: 12,
-      textStyle: "bold-caps",
-      paddingX: 12,
-      paddingY: 6,
-      letterSpacing: 0.08,
-      shadow: "none",
+      borderSize: B.none,
+      leftShape: S.square,
+      rightShape: S.square,
+      textSize: TSZ.small,
+      textStyle: TST.boldCaps,
+      padding: P.normal,
+      letterSpacing: LSP.wider,
+      shadow: SH.none,
     },
     banner: {
       bgColor: C.coralSale,
       borderColor: null,
-      borderSize: 0,
-      paddingX: 24,
-      paddingY: 18,
-      shadow: "none",
-      headline: { size: 22, weight: 700, italic: false, uppercase: true, letterSpacing: 0.08, color: C.white },
-      copy:     { size: 14, weight: 500, italic: false, uppercase: false, letterSpacing: 0,    color: C.white },
-      details:  { size: 12, weight: 400, italic: true,  uppercase: false, letterSpacing: 0,    color: C.coralTint },
+      borderSize: B.none,
+      padding: P.spacious,
+      shadow: SH.none,
+      headline: { textSize: TSZ.h4, textStyle: TST.boldCaps, letterSpacing: LSP.wider, color: C.white },
+      copy:     { textSize: TSZ.body, textStyle: TST.medium, letterSpacing: LSP.normal, color: C.white },
+      details:  { textSize: TSZ.small, textStyle: TST.italic, letterSpacing: LSP.normal, color: C.coralTint },
     },
     createdAt: SEED_TIMESTAMP,
     updatedAt: SEED_TIMESTAMP,
@@ -140,15 +147,14 @@ export const SEED_STYLES: Style[] = [
       bgColor: C.hawkesBlue,
       textColor: C.oxfordBlue,
       borderColor: null,
-      borderSize: 0,
-      leftShape: "pill",
-      rightShape: "pill",
-      textSize: 11,
-      textStyle: "medium",
-      paddingX: 12,
-      paddingY: 4,
-      letterSpacing: 0.04,
-      shadow: "none",
+      borderSize: B.none,
+      leftShape: S.pill,
+      rightShape: S.pill,
+      textSize: TSZ.caption,
+      textStyle: TST.medium,
+      padding: P.tight,
+      letterSpacing: LSP.normal,
+      shadow: SH.none,
     },
     banner: null,
     createdAt: SEED_TIMESTAMP,
@@ -162,13 +168,12 @@ export const SEED_STYLES: Style[] = [
     banner: {
       bgColor: C.springWood,
       borderColor: C.hawkesBlue,
-      borderSize: 1,
-      paddingX: 28,
-      paddingY: 20,
-      shadow: "none",
-      headline: { size: 22, weight: 600, italic: false, uppercase: false, letterSpacing: -0.01, color: C.oxfordBlue },
-      copy:     { size: 14, weight: 400, italic: false, uppercase: false, letterSpacing: 0,     color: C.oxfordBlue },
-      details:  { size: 12, weight: 400, italic: false, uppercase: false, letterSpacing: 0,     color: C.oxfordBlue },
+      borderSize: B.thin,
+      padding: P.generous,
+      shadow: SH.none,
+      headline: { textSize: TSZ.h4, textStyle: TST.semibold, letterSpacing: LSP.tight, color: C.oxfordBlue },
+      copy:     { textSize: TSZ.body, textStyle: TST.regular, letterSpacing: LSP.normal, color: C.oxfordBlue },
+      details:  { textSize: TSZ.small, textStyle: TST.regular, letterSpacing: LSP.normal, color: C.oxfordBlue },
     },
     createdAt: SEED_TIMESTAMP,
     updatedAt: SEED_TIMESTAMP,
