@@ -73,8 +73,7 @@ export type ResolvedBadgeStyle = {
   text: string;
   borderColor: string;
   borderWidth: number;
-  leftRadius: string;
-  rightRadius: string;
+  radius: string;
   fontSize: number;
   fontWeight: number;
   italic: boolean;
@@ -93,8 +92,7 @@ export function resolveBadgeStyle(badge: BadgeStyleConfig): ResolvedBadgeStyle {
     text: resolveColor(badge.textColor),
     borderColor: resolveColor(badge.borderColor),
     borderWidth: resolveBorderWidth(badge.borderSize),
-    leftRadius: resolveShapeRadius(badge.leftShape),
-    rightRadius: resolveShapeRadius(badge.rightShape),
+    radius: resolveShapeRadius(badge.shape),
     fontSize: resolveTextSize(badge.textSize),
     fontWeight: text.weight,
     italic: text.italic,
@@ -127,6 +125,39 @@ export function resolveBannerTier(tier: BannerTextTier): ResolvedBannerTier {
   };
 }
 
+export type ResolvedBannerCountdown = {
+  variant: "blocks" | "separator";
+  blockBg: string;
+  blockBorderColor: string;
+  blockBorderWidth: number;
+  blockRadius: string;
+  blockPaddingX: number;
+  blockPaddingY: number;
+  blockShadow: string;
+  separatorColor: string;
+  digit: ResolvedBannerTier;
+  label: ResolvedBannerTier;
+};
+
+export function resolveBannerCountdown(
+  c: import("../types/style").BannerCountdownConfig,
+): ResolvedBannerCountdown {
+  const pad = resolvePadding(c.blockPadding);
+  return {
+    variant: c.variant,
+    blockBg: resolveColor(c.blockBgColor),
+    blockBorderColor: resolveColor(c.blockBorderColor),
+    blockBorderWidth: resolveBorderWidth(c.blockBorderSize),
+    blockRadius: resolveShapeRadius(c.blockShape),
+    blockPaddingX: pad.x,
+    blockPaddingY: pad.y,
+    blockShadow: resolveShadowCss(c.blockShadow),
+    separatorColor: resolveColor(c.separatorColor),
+    digit: resolveBannerTier(c.digit),
+    label: resolveBannerTier(c.label),
+  };
+}
+
 export type ResolvedBannerStyle = {
   bg: string;
   borderColor: string;
@@ -134,9 +165,11 @@ export type ResolvedBannerStyle = {
   paddingX: number;
   paddingY: number;
   shadow: string;
+  textAlign: "left" | "center" | "right";
   headline: ResolvedBannerTier;
   copy: ResolvedBannerTier;
   details: ResolvedBannerTier;
+  countdown: ResolvedBannerCountdown;
 };
 
 export function resolveBannerStyle(banner: BannerStyleConfig): ResolvedBannerStyle {
@@ -148,8 +181,10 @@ export function resolveBannerStyle(banner: BannerStyleConfig): ResolvedBannerSty
     paddingX: pad.x,
     paddingY: pad.y,
     shadow: resolveShadowCss(banner.shadow),
+    textAlign: banner.textAlign,
     headline: resolveBannerTier(banner.headline),
     copy: resolveBannerTier(banner.copy),
     details: resolveBannerTier(banner.details),
+    countdown: resolveBannerCountdown(banner.countdown),
   };
 }

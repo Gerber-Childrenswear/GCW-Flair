@@ -1,15 +1,15 @@
 // Style Editor — the canonical "design a Style" surface.
 //
-// Two-pane editor: As Badge / As Banner. Each surface holds its own full
-// property set (per brief Decision #2). EVERY field is a dropdown picker
-// reading from the Settings → Brand curated tokens — no free-form pixel
-// inputs anywhere. Color fields source from Settings → Colors. WCAG
-// indicator surfaces inline whenever a bg + text pair is picked.
+// Two-pane editor: As Badge / As Banner side-by-side. Both visible at once;
+// no tabs, no shared "all surfaces" summary strip. Each surface holds its
+// own full property set (per brief Decision #2). EVERY field is a dropdown
+// picker reading from the Settings → Brand curated tokens — no segmented
+// buttons or stepper numerics, no raw hex/px (per brief Decision #5).
+// WCAG indicator surfaces inline whenever a bg + text pair is picked.
 //
-// Architectural enforcement (brief Decision #5):
-//   - Hex never visible in the editor; admins set it in Settings → Colors
-//   - Px values never typed; admins curate the brand tokens in Settings
-//   - Coordinators picking from the resulting Style library cannot drift
+// Countdown is a Banner sub-element, not a peer surface — its styling
+// lives inside the Banner pane below the three text tiers. Every Style
+// carries countdown styling whether or not any banner instance opts in.
 
 import { useMemo, useState } from "react";
 import { SEED_COLORS } from "../data/color-palette";
@@ -33,10 +33,30 @@ import type {
   BadgeStyleConfig,
   BannerStyleConfig,
   BannerTextTier,
+  BannerTextAlign,
+  BannerCountdownConfig,
+  BannerCountdownVariant,
 } from "../types/style";
 import type { ColorId } from "../types/color";
 
-// ─── WCAG helpers ────────────────────────────────────────────────────────────
+// ─── Text alignment options — small enum, presented as a dropdown so it
+//     matches the rest of the editor's "pick from a named list" feel.
+const TEXT_ALIGN_OPTIONS: { id: BannerTextAlign; name: string }[] = [
+  { id: "left",   name: "Left" },
+  { id: "center", name: "Center" },
+  { id: "right",  name: "Right" },
+];
+
+// ─── Countdown variant — block layout (per-segment cards w/ labels) vs
+//     separator layout (HH:MM:SS-style inline digits, no labels).
+const COUNTDOWN_VARIANT_OPTIONS: { id: BannerCountdownVariant; name: string }[] = [
+  { id: "blocks",    name: "Background blocks" },
+  { id: "separator", name: "Colon separator" },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WCAG helpers
+// ═══════════════════════════════════════════════════════════════════════════
 function hexToRgb(hex: string) {
   const h = hex.replace("#", "");
   const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
@@ -66,8 +86,51 @@ function wcagLabel(bg: string, fg: string, isLargeText: boolean) {
   return { level: "Fails", cls: "wcag--fail", ratio: ratio.toFixed(2) };
 }
 
+// Walk every text-on-background pair in the working Style and return a list
+// of failures (ratios below AA). Used to gate Save and surface a warning.
+function computeWcagFailures(style: Style): string[] {
+  const fails: string[] = [];
+  const check = (bgId: ColorId | null, tier: { color: ColorId; textSize: string; textStyle: string }, label: string) => {
+    const bg = resolveColor(bgId);
+    const fg = resolveColor(tier.color);
+    if (bg === "transparent" || fg === "transparent") return;
+    const px = resolveTextSize(tier.textSize);
+    const ts = resolveTextStyle(tier.textStyle);
+    const isLarge = px >= 24 || (px >= 19 && ts.weight >= 600);
+    const w = wcagLabel(bg, fg, isLarge);
+    if (w.level === "Fails") fails.push(`${label} (${w.ratio}:1)`);
+  };
+  if (style.badge) {
+    check(
+      style.badge.bgColor,
+      { color: style.badge.textColor, textSize: style.badge.textSize, textStyle: style.badge.textStyle },
+      "Badge text on background",
+    );
+  }
+  if (style.banner) {
+    const b = style.banner;
+    check(b.bgColor, b.headline, "Banner headline on background");
+    check(b.bgColor, b.copy,     "Banner copy on background");
+    check(b.bgColor, b.details,  "Banner details on background");
+    if (b.countdown.variant === "separator") {
+      // Digits + separators sit on the banner background; labels aren't rendered.
+      check(b.bgColor, b.countdown.digit, "Countdown digit on banner background");
+      // Separator inherits the digit's font-size for large-text classification.
+      check(
+        b.bgColor,
+        { color: b.countdown.separatorColor, textSize: b.countdown.digit.textSize, textStyle: b.countdown.digit.textStyle },
+        "Countdown separator on banner background",
+      );
+    } else {
+      check(b.countdown.blockBgColor, b.countdown.digit, "Countdown digit on block");
+      check(b.countdown.blockBgColor, b.countdown.label, "Countdown label on block");
+    }
+  }
+  return fails;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
-// Color picker — name-only dropdown, no hex visible
+// Color picker — swatch + name + dropdown, no hex visible
 // ═══════════════════════════════════════════════════════════════════════════
 function ColorField({
   label,
@@ -132,10 +195,7 @@ function ColorField({
                   setOpen(false);
                 }}
               >
-                <span
-                  className="se-picker-swatch"
-                  style={{ background: c.hex }}
-                />
+                <span className="se-picker-swatch" style={{ background: c.hex }} />
                 <span>{c.name}</span>
               </div>
             ))}
@@ -147,7 +207,8 @@ function ColorField({
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Generic token dropdown
+// Generic token dropdown — pulls the full curated Settings → Brand set for
+// the given options. Never subset.
 // ═══════════════════════════════════════════════════════════════════════════
 function TokenField<T extends { id: string; name: string }>({
   label,
@@ -207,7 +268,49 @@ function TokenField<T extends { id: string; name: string }>({
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Badge pane
+// Section — collapsible wrapper with chevron + title + optional meta slot.
+// Lets a designer hide groups they aren't editing so the preview at the top
+// of the pane stays in view.
+// ═══════════════════════════════════════════════════════════════════════════
+function Section({
+  title,
+  meta,
+  defaultOpen,
+  variant = "default",
+  children,
+}: {
+  title: string;
+  meta?: React.ReactNode;
+  defaultOpen?: boolean;
+  variant?: "default" | "tier";
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+  return (
+    <div
+      className={
+        "se-section" +
+        (variant === "tier" ? " se-section--tier" : "") +
+        (open ? " is-open" : " is-closed")
+      }
+    >
+      <button
+        type="button"
+        className="se-section-head"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        <span className="se-section-chev" aria-hidden>▾</span>
+        <span className="se-section-title">{title}</span>
+        {meta && <span className="se-section-meta">{meta}</span>}
+      </button>
+      {open && <div className="se-section-body">{children}</div>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Badge pane — left column
 // ═══════════════════════════════════════════════════════════════════════════
 function BadgePane({
   config,
@@ -235,84 +338,373 @@ function BadgePane({
         <BadgePreview config={config} label="BADGE TEXT" />
       </div>
 
-      <div className="se-section-label">Color</div>
-      <ColorField
-        label="Background"
-        value={config.bgColor}
-        onChange={(v) => v && update({ bgColor: v })}
-      />
-      <div className="se-field-with-meta">
+      <Section
+        title="Color"
+        meta={
+          wcag && (
+            <span className={"se-wcag " + wcag.cls}>
+              {wcag.level} <span className="se-wcag-ratio">{wcag.ratio}:1</span>
+            </span>
+          )
+        }
+      >
+        <ColorField
+          label="Background"
+          value={config.bgColor}
+          onChange={(v) => v && update({ bgColor: v })}
+        />
         <ColorField
           label="Text color"
           value={config.textColor}
           onChange={(v) => v && update({ textColor: v })}
         />
-        {wcag && (
-          <div className={"se-wcag " + wcag.cls}>
-            {wcag.level} <span className="se-wcag-ratio">{wcag.ratio}:1</span>
-          </div>
-        )}
+        <ColorField
+          label="Border color"
+          value={config.borderColor}
+          onChange={(v) => update({ borderColor: v })}
+          allowNone
+        />
+      </Section>
+
+      <Section title="Shape">
+        <TokenField
+          label="Shape"
+          value={config.shape}
+          options={SEED_SHAPES}
+          onChange={(id) => update({ shape: id })}
+          preview={(t) => (
+            <span
+              style={{
+                display: "inline-block",
+                width: 18,
+                height: 14,
+                background: "var(--color-oxford-blue)",
+                borderRadius: t.borderRadius,
+              }}
+            />
+          )}
+        />
+      </Section>
+
+      <Section title="Type">
+        <TokenField
+          label="Text size"
+          value={config.textSize}
+          options={SEED_TEXT_SIZES}
+          onChange={(id) => update({ textSize: id })}
+          preview={(t) => (
+            <span style={{ fontSize: Math.min(t.size, 18), fontWeight: 600 }}>Aa</span>
+          )}
+        />
+        <TokenField
+          label="Text style"
+          value={config.textStyle}
+          options={SEED_TEXT_STYLES}
+          onChange={(id) => update({ textStyle: id })}
+          preview={(t) => (
+            <span
+              style={{
+                fontWeight: t.weight,
+                fontStyle: t.italic ? "italic" : "normal",
+                textTransform: t.uppercase ? "uppercase" : "none",
+                fontSize: 12,
+              }}
+            >
+              {t.uppercase ? "AB" : "Ab"}
+            </span>
+          )}
+        />
+        <TokenField
+          label="Letter spacing"
+          value={config.letterSpacing}
+          options={SEED_LETTER_SPACING}
+          onChange={(id) => update({ letterSpacing: id })}
+        />
+      </Section>
+
+      <Section title="Spacing & frame">
+        <TokenField
+          label="Padding"
+          value={config.padding}
+          options={SEED_PADDING}
+          onChange={(id) => update({ padding: id })}
+        />
+        <TokenField
+          label="Border size"
+          value={config.borderSize}
+          options={SEED_BORDERS}
+          onChange={(id) => update({ borderSize: id })}
+        />
+        <TokenField
+          label="Shadow"
+          value={config.shadow}
+          options={SEED_SHADOWS}
+          onChange={(id) => update({ shadow: id })}
+        />
+      </Section>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Banner pane — right column. Has frame fields, a banner-level text
+// alignment, and three text tiers (Headline / Copy / Details).
+// ═══════════════════════════════════════════════════════════════════════════
+function BannerPane({
+  config,
+  onChange,
+}: {
+  config: BannerStyleConfig;
+  onChange: (c: BannerStyleConfig) => void;
+}) {
+  const update = (patch: Partial<BannerStyleConfig>) => onChange({ ...config, ...patch });
+  const updateTier = (
+    tier: "headline" | "copy" | "details",
+    patch: Partial<BannerTextTier>,
+  ) => onChange({ ...config, [tier]: { ...config[tier], ...patch } });
+  const updateCountdown = (patch: Partial<BannerCountdownConfig>) =>
+    onChange({ ...config, countdown: { ...config.countdown, ...patch } });
+  const updateCountdownTier = (
+    tier: "digit" | "label",
+    patch: Partial<BannerTextTier>,
+  ) =>
+    onChange({
+      ...config,
+      countdown: { ...config.countdown, [tier]: { ...config.countdown[tier], ...patch } },
+    });
+
+  return (
+    <div className="se-pane">
+      <h3 className="se-pane-title">As Banner</h3>
+      <div className="se-preview-shell">
+        <BannerPreview config={config} showCountdown />
       </div>
+
+      <Section title="Frame">
+        <ColorField
+          label="Background"
+          value={config.bgColor}
+          onChange={(v) => v && update({ bgColor: v })}
+        />
+        <ColorField
+          label="Border color"
+          value={config.borderColor}
+          onChange={(v) => update({ borderColor: v })}
+          allowNone
+        />
+        <TokenField
+          label="Border size"
+          value={config.borderSize}
+          options={SEED_BORDERS}
+          onChange={(id) => update({ borderSize: id })}
+        />
+        <TokenField
+          label="Padding"
+          value={config.padding}
+          options={SEED_PADDING}
+          onChange={(id) => update({ padding: id })}
+        />
+        <TokenField
+          label="Shadow"
+          value={config.shadow}
+          options={SEED_SHADOWS}
+          onChange={(id) => update({ shadow: id })}
+        />
+        <TokenField
+          label="Text alignment"
+          value={config.textAlign}
+          options={TEXT_ALIGN_OPTIONS}
+          onChange={(id) => update({ textAlign: id as BannerTextAlign })}
+        />
+      </Section>
+
+      {(["headline", "copy", "details"] as const).map((tierKey) => (
+        <BannerTierFieldset
+          key={tierKey}
+          label={tierKey === "headline" ? "Headline" : tierKey === "copy" ? "Copy" : "Details"}
+          tier={config[tierKey]}
+          bgColor={config.bgColor}
+          onChange={(patch) => updateTier(tierKey, patch)}
+        />
+      ))}
+
+      <CountdownFieldset
+        countdown={config.countdown}
+        bannerBgColor={config.bgColor}
+        onChange={updateCountdown}
+        onChangeTier={updateCountdownTier}
+      />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Countdown fieldset — sub-element of the Banner. Always defined in the
+// Style; per-campaign banner instances opt in to actually render it.
+// ═══════════════════════════════════════════════════════════════════════════
+function CountdownFieldset({
+  countdown,
+  bannerBgColor,
+  onChange,
+  onChangeTier,
+}: {
+  countdown: BannerCountdownConfig;
+  bannerBgColor: ColorId;
+  onChange: (patch: Partial<BannerCountdownConfig>) => void;
+  onChangeTier: (tier: "digit" | "label", patch: Partial<BannerTextTier>) => void;
+}) {
+  // The Countdown carries TWO contrast checks. In blocks mode: digit and
+  // label, both on the block bg. In separator mode: digit and separator,
+  // both on the banner bg. Both are surfaced as separate pills so a passing
+  // digit can't mask a failing label/separator at a glance.
+  const wcagChecks = useMemo(() => {
+    const pair = (
+      bgId: ColorId,
+      fgId: ColorId,
+      sizeId: string,
+      styleId: string,
+    ) => {
+      const bg = resolveColor(bgId);
+      const fg = resolveColor(fgId);
+      if (bg === "transparent" || fg === "transparent") return null;
+      const px = resolveTextSize(sizeId);
+      const ts = resolveTextStyle(styleId);
+      const isLarge = px >= 24 || (px >= 19 && ts.weight >= 600);
+      return wcagLabel(bg, fg, isLarge);
+    };
+    const rows =
+      countdown.variant === "separator"
+        ? [
+            { role: "Digit",     result: pair(bannerBgColor, countdown.digit.color, countdown.digit.textSize, countdown.digit.textStyle) },
+            // Separator inherits the digit's size class for the AA/AAA boundary.
+            { role: "Separator", result: pair(bannerBgColor, countdown.separatorColor, countdown.digit.textSize, countdown.digit.textStyle) },
+          ]
+        : [
+            { role: "Digit", result: pair(countdown.blockBgColor, countdown.digit.color, countdown.digit.textSize, countdown.digit.textStyle) },
+            { role: "Label", result: pair(countdown.blockBgColor, countdown.label.color, countdown.label.textSize, countdown.label.textStyle) },
+          ];
+    return rows.flatMap((r) => (r.result ? [{ role: r.role, result: r.result }] : []));
+  }, [
+    countdown.variant,
+    countdown.blockBgColor,
+    bannerBgColor,
+    countdown.separatorColor,
+    countdown.digit.color,
+    countdown.digit.textSize,
+    countdown.digit.textStyle,
+    countdown.label.color,
+    countdown.label.textSize,
+    countdown.label.textStyle,
+  ]);
+
+  const isBlocks = countdown.variant === "blocks";
+
+  return (
+    <Section
+      variant="tier"
+      title="Countdown"
+      meta={
+        wcagChecks.length > 0 && (
+          <span className="se-wcag-group">
+            {wcagChecks.map((c, i) => (
+              <span key={c.role} className="se-wcag-group-item">
+                {i > 0 && <span className="se-wcag-sep" aria-hidden>/</span>}
+                <span className={"se-wcag " + c.result.cls}>
+                  <span className="se-wcag-role">{c.role}</span> {c.result.level}{" "}
+                  <span className="se-wcag-ratio">{c.result.ratio}:1</span>
+                </span>
+              </span>
+            ))}
+          </span>
+        )
+      }
+    >
+      <TokenField
+        label="Variant"
+        value={countdown.variant}
+        options={COUNTDOWN_VARIANT_OPTIONS}
+        onChange={(id) => onChange({ variant: id as BannerCountdownVariant })}
+      />
+
+      {!isBlocks && (
+        <ColorField
+          label="Separator color"
+          value={countdown.separatorColor}
+          onChange={(v) => v && onChange({ separatorColor: v })}
+        />
+      )}
+
+      {isBlocks && (
+        <>
+          <ColorField
+            label="Block background"
+            value={countdown.blockBgColor}
+            onChange={(v) => v && onChange({ blockBgColor: v })}
+          />
+          <ColorField
+            label="Block border color"
+            value={countdown.blockBorderColor}
+            onChange={(v) => onChange({ blockBorderColor: v })}
+            allowNone
+          />
+          <TokenField
+            label="Block border size"
+            value={countdown.blockBorderSize}
+            options={SEED_BORDERS}
+            onChange={(id) => onChange({ blockBorderSize: id })}
+          />
+          <TokenField
+            label="Block shape"
+            value={countdown.blockShape}
+            options={SEED_SHAPES}
+            onChange={(id) => onChange({ blockShape: id })}
+            preview={(t) => (
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 18,
+                  height: 14,
+                  background: "var(--color-oxford-blue)",
+                  borderRadius: t.borderRadius,
+                }}
+              />
+            )}
+          />
+          <TokenField
+            label="Block padding"
+            value={countdown.blockPadding}
+            options={SEED_PADDING}
+            onChange={(id) => onChange({ blockPadding: id })}
+          />
+          <TokenField
+            label="Block shadow"
+            value={countdown.blockShadow}
+            options={SEED_SHADOWS}
+            onChange={(id) => onChange({ blockShadow: id })}
+          />
+        </>
+      )}
+
+      <div className="se-section-label">Digit</div>
       <ColorField
-        label="Border color"
-        value={config.borderColor}
-        onChange={(v) => update({ borderColor: v })}
-        allowNone
-      />
-
-      <div className="se-section-label">Shape</div>
-      <TokenField
-        label="Left corner"
-        value={config.leftShape}
-        options={SEED_SHAPES}
-        onChange={(id) => update({ leftShape: id })}
-        preview={(t) => (
-          <span
-            style={{
-              display: "inline-block",
-              width: 18,
-              height: 14,
-              background: "var(--color-oxford-blue)",
-              borderTopLeftRadius: t.borderRadius,
-              borderBottomLeftRadius: t.borderRadius,
-            }}
-          />
-        )}
+        label="Color"
+        value={countdown.digit.color}
+        onChange={(v) => v && onChangeTier("digit", { color: v })}
       />
       <TokenField
-        label="Right corner"
-        value={config.rightShape}
-        options={SEED_SHAPES}
-        onChange={(id) => update({ rightShape: id })}
-        preview={(t) => (
-          <span
-            style={{
-              display: "inline-block",
-              width: 18,
-              height: 14,
-              background: "var(--color-oxford-blue)",
-              borderTopRightRadius: t.borderRadius,
-              borderBottomRightRadius: t.borderRadius,
-            }}
-          />
-        )}
-      />
-
-      <div className="se-section-label">Type</div>
-      <TokenField
-        label="Text size"
-        value={config.textSize}
+        label="Size"
+        value={countdown.digit.textSize}
         options={SEED_TEXT_SIZES}
-        onChange={(id) => update({ textSize: id })}
+        onChange={(id) => onChangeTier("digit", { textSize: id })}
         preview={(t) => (
           <span style={{ fontSize: Math.min(t.size, 18), fontWeight: 600 }}>Aa</span>
         )}
       />
       <TokenField
-        label="Text style"
-        value={config.textStyle}
+        label="Style"
+        value={countdown.digit.textStyle}
         options={SEED_TEXT_STYLES}
-        onChange={(id) => update({ textStyle: id })}
+        onChange={(id) => onChangeTier("digit", { textStyle: id })}
         preview={(t) => (
           <span
             style={{
@@ -328,98 +720,55 @@ function BadgePane({
       />
       <TokenField
         label="Letter spacing"
-        value={config.letterSpacing}
+        value={countdown.digit.letterSpacing}
         options={SEED_LETTER_SPACING}
-        onChange={(id) => update({ letterSpacing: id })}
+        onChange={(id) => onChangeTier("digit", { letterSpacing: id })}
       />
 
-      <div className="se-section-label">Spacing & frame</div>
-      <TokenField
-        label="Padding"
-        value={config.padding}
-        options={SEED_PADDING}
-        onChange={(id) => update({ padding: id })}
-      />
-      <TokenField
-        label="Border size"
-        value={config.borderSize}
-        options={SEED_BORDERS}
-        onChange={(id) => update({ borderSize: id })}
-      />
-      <TokenField
-        label="Shadow"
-        value={config.shadow}
-        options={SEED_SHADOWS}
-        onChange={(id) => update({ shadow: id })}
-      />
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Banner pane
-// ═══════════════════════════════════════════════════════════════════════════
-function BannerPane({
-  config,
-  onChange,
-}: {
-  config: BannerStyleConfig;
-  onChange: (c: BannerStyleConfig) => void;
-}) {
-  const update = (patch: Partial<BannerStyleConfig>) => onChange({ ...config, ...patch });
-  const updateTier = (
-    tier: "headline" | "copy" | "details",
-    patch: Partial<BannerTextTier>,
-  ) => onChange({ ...config, [tier]: { ...config[tier], ...patch } });
-
-  return (
-    <div className="se-pane">
-      <h3 className="se-pane-title">As Banner</h3>
-      <div className="se-preview-shell">
-        <BannerPreview config={config} />
-      </div>
-
-      <div className="se-section-label">Frame</div>
-      <ColorField
-        label="Background"
-        value={config.bgColor}
-        onChange={(v) => v && update({ bgColor: v })}
-      />
-      <ColorField
-        label="Border color"
-        value={config.borderColor}
-        onChange={(v) => update({ borderColor: v })}
-        allowNone
-      />
-      <TokenField
-        label="Border size"
-        value={config.borderSize}
-        options={SEED_BORDERS}
-        onChange={(id) => update({ borderSize: id })}
-      />
-      <TokenField
-        label="Padding"
-        value={config.padding}
-        options={SEED_PADDING}
-        onChange={(id) => update({ padding: id })}
-      />
-      <TokenField
-        label="Shadow"
-        value={config.shadow}
-        options={SEED_SHADOWS}
-        onChange={(id) => update({ shadow: id })}
-      />
-
-      {(["headline", "copy", "details"] as const).map((tierKey) => (
-        <BannerTierFieldset
-          key={tierKey}
-          label={tierKey === "headline" ? "Headline" : tierKey === "copy" ? "Copy" : "Details"}
-          tier={config[tierKey]}
-          bgColor={config.bgColor}
-          onChange={(patch) => updateTier(tierKey, patch)}
-        />
-      ))}
-    </div>
+      {isBlocks && (
+        <>
+          <div className="se-section-label">Label</div>
+          <ColorField
+            label="Color"
+            value={countdown.label.color}
+            onChange={(v) => v && onChangeTier("label", { color: v })}
+          />
+          <TokenField
+            label="Size"
+            value={countdown.label.textSize}
+            options={SEED_TEXT_SIZES}
+            onChange={(id) => onChangeTier("label", { textSize: id })}
+            preview={(t) => (
+              <span style={{ fontSize: Math.min(t.size, 18), fontWeight: 600 }}>Aa</span>
+            )}
+          />
+          <TokenField
+            label="Style"
+            value={countdown.label.textStyle}
+            options={SEED_TEXT_STYLES}
+            onChange={(id) => onChangeTier("label", { textStyle: id })}
+            preview={(t) => (
+              <span
+                style={{
+                  fontWeight: t.weight,
+                  fontStyle: t.italic ? "italic" : "normal",
+                  textTransform: t.uppercase ? "uppercase" : "none",
+                  fontSize: 12,
+                }}
+              >
+                {t.uppercase ? "AB" : "Ab"}
+              </span>
+            )}
+          />
+          <TokenField
+            label="Letter spacing"
+            value={countdown.label.letterSpacing}
+            options={SEED_LETTER_SPACING}
+            onChange={(id) => onChangeTier("label", { letterSpacing: id })}
+          />
+        </>
+      )}
+    </Section>
   );
 }
 
@@ -445,15 +794,17 @@ function BannerTierFieldset({
   }, [bgColor, tier.color, tier.textSize, tier.textStyle]);
 
   return (
-    <div className="se-tier">
-      <div className="se-section-label se-tier-label">
-        {label} text
-        {wcag && (
-          <span className={"se-wcag " + wcag.cls} style={{ marginLeft: "auto" }}>
+    <Section
+      variant="tier"
+      title={`${label} text`}
+      meta={
+        wcag && (
+          <span className={"se-wcag " + wcag.cls}>
             {wcag.level} <span className="se-wcag-ratio">{wcag.ratio}:1</span>
           </span>
-        )}
-      </div>
+        )
+      }
+    >
       <ColorField
         label="Color"
         value={tier.color}
@@ -492,7 +843,7 @@ function BannerTierFieldset({
         options={SEED_LETTER_SPACING}
         onChange={(id) => onChange({ letterSpacing: id })}
       />
-    </div>
+    </Section>
   );
 }
 
@@ -504,8 +855,7 @@ const DEFAULT_BADGE: BadgeStyleConfig = {
   textColor: "clr_013",
   borderColor: null,
   borderSize: "brd_none",
-  leftShape: "shp_rounded",
-  rightShape: "shp_rounded",
+  shape: "shp_rounded",
   textSize: "tsz_small",
   textStyle: "tst_bold_caps",
   padding: "pad_normal",
@@ -526,13 +876,26 @@ const DEFAULT_BANNER: BannerStyleConfig = {
   borderSize: "brd_none",
   padding: "pad_spacious",
   shadow: "shd_none",
+  textAlign: "center",
   headline: { ...DEFAULT_TIER, textSize: "tsz_h4", textStyle: "tst_bold_caps", letterSpacing: "lsp_wide" },
   copy: { ...DEFAULT_TIER },
   details: { ...DEFAULT_TIER, textSize: "tsz_small", textStyle: "tst_italic" },
+  countdown: {
+    variant: "blocks",
+    blockBgColor: "clr_013",
+    blockBorderColor: null,
+    blockBorderSize: "brd_none",
+    blockShape: "shp_rounded",
+    blockPadding: "pad_normal",
+    blockShadow: "shd_none",
+    separatorColor: "clr_013",
+    digit: { textSize: "tsz_h4", textStyle: "tst_bold",     letterSpacing: "lsp_normal", color: "clr_001" },
+    label: { textSize: "tsz_caption", textStyle: "tst_bold_caps", letterSpacing: "lsp_wide",  color: "clr_001" },
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Main editor
+// Main editor — head + two-pane body, both surfaces always visible.
 // ═══════════════════════════════════════════════════════════════════════════
 export default function StyleEditor({
   style,
@@ -547,6 +910,8 @@ export default function StyleEditor({
 }) {
   const [working, setWorking] = useState<Style>(style);
   const dirty = JSON.stringify(working) !== JSON.stringify(style);
+  const wcagFailures = useMemo(() => computeWcagFailures(working), [working]);
+  const blockedByWcag = wcagFailures.length > 0;
 
   return (
     <div className="se-editor">
@@ -579,8 +944,9 @@ export default function StyleEditor({
             <button
               type="button"
               className="sc-btn sc-btn--primary"
-              disabled={!dirty || !working.name.trim()}
+              disabled={!dirty || !working.name.trim() || blockedByWcag}
               onClick={() => onSave({ ...working, updatedAt: new Date().toISOString() })}
+              title={blockedByWcag ? "Fix WCAG failures before saving" : undefined}
             >
               Save changes
             </button>
@@ -594,6 +960,19 @@ export default function StyleEditor({
           rows={2}
         />
       </div>
+
+      {blockedByWcag && (
+        <div className="se-wcag-banner" role="alert">
+          <div className="se-wcag-banner-title">
+            ⚠ Can't save — {wcagFailures.length} contrast {wcagFailures.length === 1 ? "pair fails" : "pairs fail"} WCAG
+          </div>
+          <ul className="se-wcag-banner-list">
+            {wcagFailures.map((f) => (
+              <li key={f}>{f}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="se-panes">
         {working.badge ? (

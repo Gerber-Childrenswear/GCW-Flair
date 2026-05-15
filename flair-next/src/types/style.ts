@@ -41,8 +41,7 @@ export type BadgeStyleConfig = {
   textColor: ColorId;
   borderColor: ColorId | null;
   borderSize: BorderId;
-  leftShape: ShapeId;
-  rightShape: ShapeId;
+  shape: ShapeId;
   textSize: TextSizeId;
   textStyle: TextStyleId;
   padding: PaddingId;
@@ -53,15 +52,43 @@ export type BadgeStyleConfig = {
 // ─── Banner surface configuration ────────────────────────────────────────────
 // Banner has three text tiers + the shared frame (bg, padding, border, shadow).
 // Countdowns are a per-instance Banner add-on, not part of the Style.
+export type BannerTextAlign = "left" | "center" | "right";
+
+// ─── Banner countdown sub-element ────────────────────────────────────────────
+// Every Style defines how a countdown would look IF the banner using this
+// Style opts in. Whether a per-campaign banner actually renders a countdown
+// is a per-instance choice (handled elsewhere); the Style only carries the
+// visual contract. Digit and label reuse the BannerTextTier shape so they
+// pick from the same Settings → Brand typography tokens.
+// "blocks": each digit sits in a styled block with a label beneath.
+// "separator": digits render inline separated by ":", no blocks/labels —
+// block + label fields are ignored in that mode.
+export type BannerCountdownVariant = "blocks" | "separator";
+
+export type BannerCountdownConfig = {
+  variant: BannerCountdownVariant;
+  blockBgColor: ColorId;
+  blockBorderColor: ColorId | null;
+  blockBorderSize: BorderId;
+  blockShape: ShapeId;
+  blockPadding: PaddingId;
+  blockShadow: ShadowId;
+  separatorColor: ColorId;
+  digit: BannerTextTier;
+  label: BannerTextTier;
+};
+
 export type BannerStyleConfig = {
   bgColor: ColorId;
   borderColor: ColorId | null;
   borderSize: BorderId;
   padding: PaddingId;
   shadow: ShadowId;
+  textAlign: BannerTextAlign;
   headline: BannerTextTier;
   copy: BannerTextTier;
   details: BannerTextTier;
+  countdown: BannerCountdownConfig;
 };
 
 // ─── Style ───────────────────────────────────────────────────────────────────

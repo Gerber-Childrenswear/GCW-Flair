@@ -26,7 +26,7 @@ export function BadgePreview({
         alignItems: "center",
         background: r.bg,
         color: r.text,
-        borderRadius: `${r.leftRadius} ${r.rightRadius} ${r.rightRadius} ${r.leftRadius}`,
+        borderRadius: r.radius,
         padding: `${r.paddingY * scale}px ${r.paddingX * scale}px`,
         fontSize: `${r.fontSize * scale}px`,
         fontWeight: r.fontWeight,
@@ -49,6 +49,10 @@ export function BadgePreview({
 }
 
 // ─── Banner preview ──────────────────────────────────────────────────────────
+// The countdown sub-element is styled in every Style (even when no per-campaign
+// banner uses it). Set `showCountdown` to render the countdown row in the
+// preview — the editor opts in so the user can see what they're styling; the
+// list view leaves it off to keep small previews readable.
 export function BannerPreview({
   config,
   headlineText = "BANNER HEADLINE",
@@ -56,6 +60,7 @@ export function BannerPreview({
   detailsText = "Terms apply. Some restrictions.",
   scale = 1,
   width,
+  showCountdown = false,
 }: {
   config: BannerStyleConfig;
   headlineText?: string;
@@ -63,8 +68,11 @@ export function BannerPreview({
   detailsText?: string;
   scale?: number;
   width?: number | string;
+  showCountdown?: boolean;
 }) {
   const r = resolveBannerStyle(config);
+  const justify =
+    r.textAlign === "center" ? "center" : r.textAlign === "right" ? "flex-end" : "flex-start";
   return (
     <div
       style={{
@@ -82,6 +90,7 @@ export function BannerPreview({
         fontFamily: "var(--font-sans)",
         boxSizing: "border-box",
         overflow: "hidden",
+        textAlign: r.textAlign,
       }}
     >
       <div
@@ -133,6 +142,121 @@ export function BannerPreview({
       >
         {detailsText}
       </div>
+      {showCountdown && (
+        r.countdown.variant === "separator" ? (
+          <div
+            style={{
+              marginTop: 10 * scale,
+              display: "flex",
+              justifyContent: justify,
+              alignItems: "baseline",
+              gap: 8 * scale,
+            }}
+          >
+            {["02", "14", "38", "12"].map((digit, i) => {
+              const c = r.countdown;
+              return (
+                <span key={i} style={{ display: "inline-flex", alignItems: "baseline", gap: 8 * scale }}>
+                  <span
+                    style={{
+                      fontSize: `${c.digit.fontSize * scale}px`,
+                      fontWeight: c.digit.fontWeight,
+                      fontStyle: c.digit.italic ? "italic" : "normal",
+                      textTransform: c.digit.uppercase ? "uppercase" : "none",
+                      letterSpacing: `${c.digit.letterSpacing}em`,
+                      color: c.digit.color,
+                      fontVariantNumeric: "tabular-nums",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {digit}
+                  </span>
+                  {i < 3 && (
+                    <span
+                      aria-hidden
+                      style={{
+                        fontSize: `${c.digit.fontSize * scale}px`,
+                        fontWeight: c.digit.fontWeight,
+                        color: c.separatorColor,
+                        lineHeight: 1,
+                      }}
+                    >
+                      :
+                    </span>
+                  )}
+                </span>
+              );
+            })}
+          </div>
+        ) : (
+          <div
+            style={{
+              marginTop: 10 * scale,
+              display: "flex",
+              justifyContent: justify,
+              gap: 8 * scale,
+              flexWrap: "wrap",
+            }}
+          >
+            {[
+              { digit: "02", label: "Days" },
+              { digit: "14", label: "Hrs" },
+              { digit: "38", label: "Min" },
+              { digit: "12", label: "Sec" },
+            ].map(({ digit, label }) => {
+              const c = r.countdown;
+              return (
+                <div
+                  key={label}
+                  style={{
+                    background: c.blockBg,
+                    border:
+                      c.blockBorderWidth > 0 && c.blockBorderColor !== "transparent"
+                        ? `${c.blockBorderWidth}px solid ${c.blockBorderColor}`
+                        : "none",
+                    borderRadius: c.blockRadius,
+                    boxShadow: c.blockShadow,
+                    padding: `${c.blockPaddingY * scale}px ${c.blockPaddingX * scale}px`,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: 44 * scale,
+                    lineHeight: 1.1,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: `${c.digit.fontSize * scale}px`,
+                      fontWeight: c.digit.fontWeight,
+                      fontStyle: c.digit.italic ? "italic" : "normal",
+                      textTransform: c.digit.uppercase ? "uppercase" : "none",
+                      letterSpacing: `${c.digit.letterSpacing}em`,
+                      color: c.digit.color,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {digit}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: `${c.label.fontSize * scale}px`,
+                      fontWeight: c.label.fontWeight,
+                      fontStyle: c.label.italic ? "italic" : "normal",
+                      textTransform: c.label.uppercase ? "uppercase" : "none",
+                      letterSpacing: `${c.label.letterSpacing}em`,
+                      color: c.label.color,
+                      marginTop: 2 * scale,
+                    }}
+                  >
+                    {label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
+      )}
     </div>
   );
 }

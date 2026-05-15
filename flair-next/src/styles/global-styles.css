@@ -320,11 +320,12 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
- * Style Editor (StyleEditor.tsx) — two-pane Badge/Banner picker.
+ * Style Editor (StyleEditor.tsx) — two-pane Badge / Banner builder.
  *
- * Every field is a dropdown sourced from Settings → Brand tokens. The
- * editor never holds raw px or hex; resolvers translate token IDs into
- * concrete values at render time.
+ * Both surfaces visible side-by-side; no tabs, no "all surfaces" summary
+ * strip. Every brand-token field is a dropdown (ColorField / TokenField)
+ * pulling the full curated set from Settings → Brand. The editor never
+ * holds raw hex / px — per brief Decision #5.
  * ══════════════════════════════════════════════════════════════════════════ */
 
 .se-editor {
@@ -332,6 +333,8 @@
   flex-direction: column;
   gap: var(--space-4);
 }
+
+/* ─── Header — back link, title row (name + actions), description ────────── */
 
 .se-editor-head {
   display: flex;
@@ -397,7 +400,7 @@
   box-shadow: 0 0 0 3px rgba(122, 159, 219, 0.18);
 }
 
-/* ─── Two-pane layout ───────────────────────────────────────────────────── */
+/* ─── Two-pane layout — Badge left, Banner right, both visible ───────────── */
 
 .se-panes {
   display: grid;
@@ -472,7 +475,7 @@
   color: var(--text-primary);
 }
 
-/* ─── Preview shell sits at the top of each pane ────────────────────────── */
+/* ─── Preview shell — sits at the top of each pane ───────────────────────── */
 
 .se-preview-shell {
   background: #fff;
@@ -486,7 +489,7 @@
   margin-bottom: var(--space-2);
 }
 
-/* ─── Section labels ────────────────────────────────────────────────────── */
+/* ─── Section labels (Color / Shape / Type / Spacing & frame / Frame) ────── */
 
 .se-section-label {
   font-size: 11px;
@@ -502,14 +505,13 @@
   gap: var(--space-2);
 }
 
-.se-section-label:first-of-type,
 .se-pane > .se-section-label:nth-of-type(1) {
   border-top: none;
   padding-top: 0;
   margin-top: 0;
 }
 
-/* ─── Fields ────────────────────────────────────────────────────────────── */
+/* ─── Field — label + control + optional WCAG meta ───────────────────────── */
 
 .se-field {
   display: flex;
@@ -533,7 +535,7 @@
   align-self: flex-start;
 }
 
-/* ─── Picker (compact dropdown shared by ColorField + TokenField) ───────── */
+/* ─── Picker — shared by ColorField + TokenField (the dropdowns) ─────────── */
 
 .se-picker {
   position: relative;
@@ -625,28 +627,98 @@
   font-weight: 600;
 }
 
-/* ─── Banner tier fieldset (Headline / Copy / Details) ──────────────────── */
+/* ─── Collapsible section (Frame / Color / Shape / tier / Countdown) ─────── */
+/* Each top-level group in the pane is a Section — clickable header with a
+   chevron, optional meta slot for the WCAG chip, and a body that the user
+   can collapse to keep the preview at top of the pane in view. */
 
-.se-tier {
+.se-section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  background: rgba(122, 159, 219, 0.05);
-  border: 1px solid rgba(122, 159, 219, 0.15);
-  border-radius: var(--radius-sm);
 }
 
-.se-tier-label {
+.se-section-head {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-top: 0;
-  padding-top: 0;
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-2) 0;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+}
+
+.se-section-head:hover {
+  color: var(--color-oxford-blue);
+}
+
+.se-section-head:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-jordy-blue));
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.se-section-chev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  font-size: 9px;
+  color: var(--text-muted);
+  transition: transform 150ms ease;
+}
+
+.se-section.is-closed .se-section-chev {
+  transform: rotate(-90deg);
+}
+
+.se-section-title {
+  flex: 1;
+}
+
+.se-section-meta {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.se-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+}
+
+/* Default-variant sections separate from each other with a hairline */
+.se-pane > .se-section:not(.se-section--tier) {
+  border-top: 1px solid var(--bg-muted);
+}
+.se-pane > .se-section:not(.se-section--tier):first-of-type {
   border-top: none;
 }
 
-/* ─── WCAG indicator (shared with badge editor + banner tiers) ──────────── */
+/* Tier variant — soft blue card for Headline / Copy / Details / Countdown */
+.se-section--tier {
+  background: rgba(122, 159, 219, 0.05);
+  border: 1px solid rgba(122, 159, 219, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-3);
+}
+.se-section--tier .se-section-head {
+  padding: var(--space-3) 0;
+}
+.se-section--tier.is-closed .se-section-head {
+  padding: var(--space-2) 0;
+}
+
+/* ─── WCAG indicator (shared with badge editor + banner tiers) ───────────── */
 
 .se-wcag {
   display: inline-flex;
@@ -677,4 +749,62 @@
 .wcag--fail {
   background: rgba(225, 89, 89, 0.18);
   color: #a13030;
+}
+
+/* Group of WCAG pills (Countdown shows two: digit + label OR digit + separator) */
+.se-wcag-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.se-wcag-group-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.se-wcag-sep {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.se-wcag-role {
+  font-weight: 500;
+  opacity: 0.8;
+  margin-right: 2px;
+}
+
+/* ─── Save-blocking WCAG warning banner (top of editor) ──────────────────── */
+
+.se-wcag-banner {
+  background: rgba(225, 89, 89, 0.06);
+  border: 1px solid rgba(225, 89, 89, 0.35);
+  border-left-width: 4px;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  color: #a13030;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.se-wcag-banner-title {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.se-wcag-banner-list {
+  margin: 4px 0 0 0;
+  padding-left: 20px;
+  line-height: 1.5;
+}
+
+.se-wcag-banner-list li {
+  font-weight: 500;
 }
