@@ -83,11 +83,14 @@ function simpleToComparator(s: SimpleComparator, field: ConditionField): Compara
 }
 
 // ─── Row model — multiple RuleConditions for the same (field, comparator)
-//     in the same group collapse into one row with N chips. ──────────────
+//     in the same group collapse into one row with N chips. sortOrder is
+//     shared by all chips in a row so the row holds a single position in
+//     the unified item ordering (rows + child groups interleaved). ──────
 type Row = {
   field: ConditionField;
   comparator: SimpleComparator;
   values: string[];
+  sortOrder: number;
 };
 
 function conditionsToRows(conditions: RuleCondition[]): Row[] {
@@ -96,28 +99,39 @@ function conditionsToRows(conditions: RuleCondition[]): Row[] {
     const simple = comparatorToSimple(c.comparator);
     const key = `${c.field}:${simple}`;
     if (!grouped.has(key)) {
-      grouped.set(key, { field: c.field, comparator: simple, values: [] });
+      grouped.set(key, {
+        field: c.field,
+        comparator: simple,
+        values: [],
+        sortOrder: c.sortOrder,
+      });
+    } else {
+      // Multiple chips for the same row — collapse to the lowest sortOrder
+      // so the row sits at its earliest position.
+      const row = grouped.get(key)!;
+      if (c.sortOrder < row.sortOrder) row.sortOrder = c.sortOrder;
     }
     grouped.get(key)!.values.push(c.value);
   }
-  return Array.from(grouped.values());
+  return Array.from(grouped.values()).sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 function rowsToConditions(rows: Row[], groupId: string): RuleCondition[] {
   const out: RuleCondition[] = [];
-  let sortOrder = 0;
   for (const row of rows) {
     // Empty rows still represent intent — they re-appear from local state
     // but don't emit dangling conditions until they have at least one chip.
     if (row.values.length === 0) continue;
     for (const value of row.values) {
       out.push({
-        id: `rc_${groupId}_${row.field}_${value}_${sortOrder}`,
+        id: `rc_${groupId}_${row.field}_${value}_${row.sortOrder}`,
         groupId,
         field: row.field,
         comparator: simpleToComparator(row.comparator, row.field),
         value,
-        sortOrder: sortOrder++,
+        // All chips of a row share the row's sortOrder. Stable sort
+        // preserves chip insertion order within the row.
+        sortOrder: row.sortOrder,
       });
     }
   }
@@ -230,20 +244,41 @@ function GroupBlock({
   onChange,
 }: GroupBlockProps) {
   const group = allGroups.find((g) => g.id === groupId);
+
+  // Local-only state for in-progress empty rows. Staged rows hold their own
+  // field/comparator/sortOrder so they can sit visible (and interleave
+  // correctly with siblings) without persisting a dangling RuleCondition.
+  // The sortOrder a staged row owns is the same number it'll keep once it
+  // gets its first chip and is promoted to persisted state.
+  const [stagedRows, setStagedRows] = useState<Row[]>([]);
+
   if (!group) return null;
 
   const isRoot = group.parentGroupId === null;
   const myConditions = allConditions
     .filter((c) => c.groupId === groupId)
     .sort((a, b) => a.sortOrder - b.sortOrder);
-  const rows = conditionsToRows(myConditions);
+  const persistedRows = conditionsToRows(myConditions);
   const childGroups = allGroups
     .filter((g) => g.parentGroupId === groupId)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
-  // Commit a new set of rows for THIS group only, preserving conditions in
-  // every other group.
-  const commitRows = (nextRows: Row[]) => {
+  // Next sortOrder for a new item (row or child group). Rows and child
+  // groups share a single ordering space at this group level so that
+  // "+ Add condition" and "+ Add nested group" both append to the END,
+  // regardless of which kind already exists.
+  const nextSortOrder = (): number => {
+    const all = [
+      ...persistedRows.map((r) => r.sortOrder),
+      ...childGroups.map((g) => g.sortOrder),
+      ...stagedRows.map((r) => r.sortOrder),
+    ];
+    return all.length === 0 ? 0 : Math.max(...all) + 1;
+  };
+
+  // Commit a new set of persisted rows for THIS group only, preserving
+  // conditions in every other group.
+  const commitPersistedRows = (nextRows: Row[]) => {
     const others = allConditions.filter((c) => c.groupId !== groupId);
     const mine = rowsToConditions(nextRows, groupId);
     onChange(allGroups, [...others, ...mine]);
@@ -271,93 +306,99 @@ function GroupBlock({
       parentGroupId: groupId,
       operator: "AND",
       includeMode: "include",
-      sortOrder: childGroups.length,
+      sortOrder: nextSortOrder(),
     };
     onChange([...allGroups, newGroup], allConditions);
   };
 
-  const addRow = () => {
-    commitRows([...rows, { field: "page_type", comparator: "is", values: [] }]);
-  };
-
-  // Local-only state for in-progress empty rows so a brand-new row can sit
-  // visible without immediately persisting an empty RuleCondition. We track
-  // empty-row count by inferring from local visible rows below.
-  // (Rows with at least one chip round-trip cleanly through the data model.)
-  const [emptyRowCount, setEmptyRowCount] = useState<number>(0);
-
-  // Visible rows = persisted rows + any locally-staged empty rows.
-  const visibleRows: Row[] = [
-    ...rows,
-    ...Array.from({ length: emptyRowCount }, () => ({
-      field: "page_type" as ConditionField,
-      comparator: "is" as SimpleComparator,
-      values: [] as string[],
-    })),
-  ];
-
   const handleAddRow = () => {
-    // Either bump the staged-empty counter or commit a real row if there
-    // is no existing empty one to reuse.
-    if (rows.some((r) => r.values.length === 0)) {
-      // already an empty row — no-op
+    // Only one empty row at a time — if there's already one waiting for
+    // input, focus stays on it instead of stacking another empty row.
+    if (
+      persistedRows.some((r) => r.values.length === 0) ||
+      stagedRows.length > 0
+    ) {
       return;
     }
-    setEmptyRowCount((n) => n + 1);
+    setStagedRows([
+      ...stagedRows,
+      {
+        field: "page_type",
+        comparator: "is",
+        values: [],
+        sortOrder: nextSortOrder(),
+      },
+    ]);
   };
 
+  // Row index helpers — visible rows are persisted + staged, in that order
+  // when materialized for actions. The render path uses a unified
+  // interleaved list (see below) and translates the rendered index back to
+  // the underlying row before dispatching.
+  const isStagedIndex = (i: number) => i >= persistedRows.length;
+  const stagedOffset = (i: number) => i - persistedRows.length;
+
   const handleRemoveRow = (i: number) => {
-    if (i < rows.length) {
-      // Removing a persisted row
-      commitRows(rows.filter((_, idx) => idx !== i));
+    if (!isStagedIndex(i)) {
+      commitPersistedRows(persistedRows.filter((_, idx) => idx !== i));
     } else {
-      // Removing a locally-staged empty row
-      setEmptyRowCount((n) => Math.max(0, n - 1));
+      const s = stagedOffset(i);
+      setStagedRows(stagedRows.filter((_, idx) => idx !== s));
     }
   };
 
   const handleFieldChange = (i: number, field: ConditionField) => {
-    if (i < rows.length) {
-      commitRows(rows.map((r, idx) => (idx === i ? { ...r, field } : r)));
+    if (!isStagedIndex(i)) {
+      commitPersistedRows(
+        persistedRows.map((r, idx) => (idx === i ? { ...r, field } : r)),
+      );
+    } else {
+      const s = stagedOffset(i);
+      setStagedRows(
+        stagedRows.map((r, idx) => (idx === s ? { ...r, field } : r)),
+      );
     }
-    // Empty staged rows: field only matters when chips get added; we'll
-    // commit on first chip with the field value at that moment.
   };
 
   const handleComparatorChange = (i: number, comparator: SimpleComparator) => {
-    if (i < rows.length) {
-      commitRows(rows.map((r, idx) => (idx === i ? { ...r, comparator } : r)));
+    if (!isStagedIndex(i)) {
+      commitPersistedRows(
+        persistedRows.map((r, idx) => (idx === i ? { ...r, comparator } : r)),
+      );
+    } else {
+      const s = stagedOffset(i);
+      setStagedRows(
+        stagedRows.map((r, idx) => (idx === s ? { ...r, comparator } : r)),
+      );
     }
   };
 
   const handleAddChip = (i: number, value: string) => {
     const v = value.trim();
     if (!v) return;
-    if (i < rows.length) {
-      commitRows(
-        rows.map((r, idx) =>
+    if (!isStagedIndex(i)) {
+      commitPersistedRows(
+        persistedRows.map((r, idx) =>
           idx === i
             ? { ...r, values: r.values.includes(v) ? r.values : [...r.values, v] }
             : r,
         ),
       );
     } else {
-      // First chip on a staged empty row → promote it to a real row
-      const stagedIndex = i - rows.length;
-      const row = visibleRows[i];
-      const promoted: Row = { ...row, values: [v] };
-      commitRows([...rows, promoted]);
-      // Decrement staged count; the promoted row is now persisted.
-      setEmptyRowCount((n) => Math.max(0, n - 1));
-      // (stagedIndex referenced for clarity; nothing else uses it)
-      void stagedIndex;
+      // First chip on a staged row → promote it to persisted state,
+      // carrying its sortOrder so it keeps its slot in the unified order.
+      const s = stagedOffset(i);
+      const stagedRow = stagedRows[s];
+      const promoted: Row = { ...stagedRow, values: [v] };
+      setStagedRows(stagedRows.filter((_, idx) => idx !== s));
+      commitPersistedRows([...persistedRows, promoted]);
     }
   };
 
   const handleRemoveChip = (i: number, value: string) => {
-    if (i < rows.length) {
-      commitRows(
-        rows.map((r, idx) =>
+    if (!isStagedIndex(i)) {
+      commitPersistedRows(
+        persistedRows.map((r, idx) =>
           idx === i ? { ...r, values: r.values.filter((x) => x !== value) } : r,
         ),
       );
@@ -470,77 +511,108 @@ function GroupBlock({
 
   const groupClass = isRoot ? "bc-group bc-group--root" : `bc-group bc-group--nested bc-group--depth-${Math.min(depth, 4)}`;
 
-  // Used so the add-condition affordance below the rows only renders once a
-  // brand-new staged row's add button hasn't already given them a working row.
-  void addRow;
+  // Unified item list: rows + child groups interleaved by sortOrder. This
+  // keeps a nested group attached to the conditions the merchant set it up
+  // beside — adding a new "+ Add condition" later appends at the bottom
+  // instead of jumping ahead of an existing nested group.
+  type RenderItem =
+    | { kind: "row"; row: Row; rowIndex: number; key: string }
+    | { kind: "group"; group: RuleGroup; key: string };
+
+  const rowItems: RenderItem[] = [
+    ...persistedRows.map((row, idx) => ({
+      kind: "row" as const,
+      row,
+      rowIndex: idx,
+      key: `row-p-${idx}-${row.sortOrder}`,
+    })),
+    ...stagedRows.map((row, idx) => ({
+      kind: "row" as const,
+      row,
+      rowIndex: persistedRows.length + idx,
+      key: `row-s-${idx}-${row.sortOrder}`,
+    })),
+  ];
+  const groupItems: RenderItem[] = childGroups.map((g) => ({
+    kind: "group" as const,
+    group: g,
+    key: `grp-${g.id}`,
+  }));
+
+  const items: RenderItem[] = [...rowItems, ...groupItems].sort((a, b) => {
+    const sa = a.kind === "row" ? a.row.sortOrder : a.group.sortOrder;
+    const sb = b.kind === "row" ? b.row.sortOrder : b.group.sortOrder;
+    return sa - sb;
+  });
 
   return (
     <div className={groupClass}>
       {renderHeader()}
-      {(visibleRows.length > 0 || childGroups.length > 0) && isRoot && (
-        <hr className="bc-divider" />
-      )}
+      {items.length > 0 && isRoot && <hr className="bc-divider" />}
 
-      {visibleRows.map((row, i) => {
-        const fieldOpt = FIELD_OPTIONS.find((f) => f.value === row.field);
-        return (
-          <div key={`row-${i}`} className="bc-row">
-            <select
-              className="bc-select"
-              value={row.field}
-              onChange={(e) => handleFieldChange(i, e.target.value as ConditionField)}
-            >
-              {FIELD_OPTIONS.map((f) => (
-                <option key={f.value} value={f.value}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-            <select
-              className="bc-select"
-              value={row.comparator}
-              onChange={(e) => handleComparatorChange(i, e.target.value as SimpleComparator)}
-            >
-              <option value="is">is</option>
-              <option value="is_not">is not</option>
-            </select>
-            <div className="bc-value-cell">
-              <ChipInput
-                values={row.values}
-                placeholder={fieldOpt?.placeholder ?? "Enter values"}
-                onAdd={(v) => handleAddChip(i, v)}
-                onRemove={(v) => handleRemoveChip(i, v)}
-              />
-            </div>
-            <button
-              type="button"
-              className="bc-row-remove"
-              onClick={() => handleRemoveRow(i)}
-              title="Remove condition"
-              aria-label="Remove condition"
-            >
-              <svg viewBox="0 0 20 20" aria-hidden="true" width="16" height="16">
-                <path
-                  d="M7 3h6l1 2h3v2H3V5h3l1-2zm-2 5h10l-1 9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 8zm3 2v8h1v-8H8zm3 0v8h1v-8h-1z"
-                  fill="currentColor"
+      {items.map((item) => {
+        if (item.kind === "row") {
+          const { row, rowIndex } = item;
+          const fieldOpt = FIELD_OPTIONS.find((f) => f.value === row.field);
+          return (
+            <div key={item.key} className="bc-row">
+              <select
+                className="bc-select"
+                value={row.field}
+                onChange={(e) => handleFieldChange(rowIndex, e.target.value as ConditionField)}
+              >
+                {FIELD_OPTIONS.map((f) => (
+                  <option key={f.value} value={f.value}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="bc-select"
+                value={row.comparator}
+                onChange={(e) => handleComparatorChange(rowIndex, e.target.value as SimpleComparator)}
+              >
+                <option value="is">is</option>
+                <option value="is_not">is not</option>
+              </select>
+              <div className="bc-value-cell">
+                <ChipInput
+                  values={row.values}
+                  placeholder={fieldOpt?.placeholder ?? "Enter values"}
+                  onAdd={(v) => handleAddChip(rowIndex, v)}
+                  onRemove={(v) => handleRemoveChip(rowIndex, v)}
                 />
-              </svg>
-            </button>
-          </div>
+              </div>
+              <button
+                type="button"
+                className="bc-row-remove"
+                onClick={() => handleRemoveRow(rowIndex)}
+                title="Remove condition"
+                aria-label="Remove condition"
+              >
+                <svg viewBox="0 0 20 20" aria-hidden="true" width="16" height="16">
+                  <path
+                    d="M7 3h6l1 2h3v2H3V5h3l1-2zm-2 5h10l-1 9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 8zm3 2v8h1v-8H8zm3 0v8h1v-8h-1z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
+            </div>
+          );
+        }
+
+        return (
+          <GroupBlock
+            key={item.key}
+            groupId={item.group.id}
+            depth={depth + 1}
+            parentOperator={group.operator}
+            allGroups={allGroups}
+            allConditions={allConditions}
+            onChange={onChange}
+          />
         );
       })}
-
-      {childGroups.map((child) => (
-        <GroupBlock
-          key={child.id}
-          groupId={child.id}
-          depth={depth + 1}
-          parentOperator={group.operator}
-          allGroups={allGroups}
-          allConditions={allConditions}
-          onChange={onChange}
-        />
-      ))}
 
       {/* "Add nested group" (not "Add nested condition") — what gets added
           is a CONTAINER that then holds multiple conditions, each with its
@@ -549,16 +621,24 @@ function GroupBlock({
           as the merchant adds a second row inside the nested block. The
           indentation already conveys nesting visually, so an alternative
           phrasing of just "+ Add condition group" would also work if the
-          word "nested" reads too technical to merchants later. */}
+          word "nested" reads too technical to merchants later.
+
+          Nesting is capped at one level — only the root group exposes
+          "+ Add nested group". Two levels covers every realistic badge
+          targeting scenario (e.g. "match X EXCEPT when Y") and prevents
+          merchants from building unreadable 3+-level trees. If a deeper
+          case turns up, raise the cap here. */}
       <div className="bc-group-actions">
         <button type="button" className="bc-add-btn" onClick={handleAddRow}>
           <span className="bc-add-btn-icon" aria-hidden>+</span>
           Add condition
         </button>
-        <button type="button" className="bc-add-btn bc-add-btn--group" onClick={addChildGroup}>
-          <span className="bc-add-btn-icon" aria-hidden>+</span>
-          Add nested group
-        </button>
+        {depth === 0 && (
+          <button type="button" className="bc-add-btn bc-add-btn--group" onClick={addChildGroup}>
+            <span className="bc-add-btn-icon" aria-hidden>+</span>
+            Add nested group
+          </button>
+        )}
       </div>
     </div>
   );
