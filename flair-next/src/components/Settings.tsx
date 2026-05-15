@@ -1,6 +1,7 @@
 import { useState } from "react";
 import SettingsColors from "./SettingsColors";
 import SettingsBrandToken from "./SettingsBrandToken";
+import LayoutLibrary from "./LayoutLibrary";
 import {
   SEED_SHAPES,
   SEED_BORDERS,
@@ -9,12 +10,15 @@ import {
   SEED_TEXT_SIZES,
   SEED_TEXT_STYLES,
 } from "../data/brand-tokens";
+import type { LayoutDefinition } from "../data/layout-library";
 
 type SettingsProps = {
   onNavigate: (view: string) => void;
+  onSelectLayout?: (layout: LayoutDefinition) => void;
 };
 
-// Sub-pages within Settings → Brand (per brief Decision #5, Phase 2+).
+// Sub-pages within Settings (per brief Decision #5 Phase 2 +
+// Theme/Layouts admin curation, 2026-05-15).
 type SettingsSubView =
   | "general"
   | "colors"
@@ -23,9 +27,11 @@ type SettingsSubView =
   | "padding"
   | "shadows"
   | "textsizes"
-  | "textstyles";
+  | "textstyles"
+  | "badge_layouts"
+  | "banner_layouts";
 
-export default function Settings({ onNavigate }: SettingsProps) {
+export default function Settings({ onNavigate, onSelectLayout }: SettingsProps) {
   const [subView, setSubView] = useState<SettingsSubView>("general");
 
   // ─── Sub-page wrapper (back button + child page) ─────────────────────────
@@ -240,6 +246,20 @@ export default function Settings({ onNavigate }: SettingsProps) {
             ]}
           />
         )}
+        {subView === "badge_layouts" && (
+          <LayoutLibrary
+            type="badge"
+            onBack={() => setSubView("general")}
+            onSelectLayout={(layout) => onSelectLayout?.(layout)}
+          />
+        )}
+        {subView === "banner_layouts" && (
+          <LayoutLibrary
+            type="banner"
+            onBack={() => setSubView("general")}
+            onSelectLayout={(layout) => onSelectLayout?.(layout)}
+          />
+        )}
       </div>
     );
   }
@@ -339,22 +359,27 @@ export default function Settings({ onNavigate }: SettingsProps) {
       <div className="col-12">
         <div className="settings-group">
           <div className="settings-group-title">Theme</div>
-
           <div className="settings-card-surface">
-            <button className="settings-row settings-row--nav" onClick={() => onNavigate("Badges")}>
-              <span className="settings-icon settings-icon--nav">⛭</span>
+            <button className="settings-row settings-row--nav" onClick={() => setSubView("badge_layouts")}>
+              <span className="settings-icon settings-icon--nav">⛶</span>
               <span className="settings-info">
-                <span className="settings-info-title">Theme setup</span>
-                <span className="settings-info-subtitle muted">Configure badges and banners in your storefront theme.</span>
+                <span className="settings-info-title">Badge Layouts</span>
+                <span className="settings-info-subtitle muted">
+                  Placement patterns for where badges appear on product pages and collection grids.
+                  Admins curate this list; coordinators pick a layout by name when building a badge.
+                </span>
               </span>
               <span className="settings-chevron">›</span>
             </button>
 
-            <button className="settings-row settings-row--nav" onClick={() => onNavigate("Banners")}>
-              <span className="settings-icon settings-icon--nav">⇆</span>
+            <button className="settings-row settings-row--nav" onClick={() => setSubView("banner_layouts")}>
+              <span className="settings-icon settings-icon--nav">▭</span>
               <span className="settings-info">
-                <span className="settings-info-title">Theme triggers</span>
-                <span className="settings-info-subtitle muted">0 triggers configured</span>
+                <span className="settings-info-title">Banner Layouts</span>
+                <span className="settings-info-subtitle muted">
+                  Placement patterns for where banners appear (announcement bars, PDP strips,
+                  cart drawer slots). Admin-curated; coordinators pick by name.
+                </span>
               </span>
               <span className="settings-chevron">›</span>
             </button>

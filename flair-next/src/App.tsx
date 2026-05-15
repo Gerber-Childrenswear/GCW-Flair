@@ -4,7 +4,6 @@ import StatCards from "./components/StatCards";
 import QuickActions from "./components/QuickActions";
 import CampaignList from "./components/CampaignList";
 import CampaignEditor from "./components/CampaignEditor";
-import LayoutLibrary from "./components/LayoutLibrary";
 import Settings from "./components/Settings";
 import GlobalStyles from "./components/GlobalStyles";
 import AutomationCenter from "./components/AutomationCenter";
@@ -82,7 +81,9 @@ function createCampaignDraft(type: CampaignType, layout?: LayoutDefinition): Cam
 
 export default function App() {
   const [activeView, setActiveView] = useState("Overview");
-  const [activeLayoutLibrary, setActiveLayoutLibrary] = useState<CampaignType | null>(null);
+  // activeLayoutLibrary removed (2026-05-15): Layouts moved to Settings →
+  // Theme as an admin-curated surface. Coordinators no longer reach them
+  // from Badges/Banners; they pick by name inside the campaign editor.
   const [badges, setBadges] = useState<Campaign[]>(mockBadges);
   const [banners, setBanners] = useState<Campaign[]>(mockBanners);
   const [editor, setEditor] = useState<EditorState | null>(null);
@@ -113,7 +114,6 @@ export default function App() {
 
   const handleNavigate = useCallback((view: string) => {
     setActiveView(view);
-    setActiveLayoutLibrary(null);
     setEditor(null);
   }, []);
 
@@ -130,14 +130,17 @@ export default function App() {
 
   const handleAdd = useCallback(
     (type: "badge" | "banner") => {
-      setActiveLayoutLibrary(null);
       setEditor({ type, campaign: null });
     },
     [],
   );
 
+  // handleSelectLayout is invoked from Settings → Theme → Badge/Banner Layouts
+  // when an admin clicks a layout. For now, opens a new campaign editor with
+  // that layout pre-filled — preserves the original behavior of LayoutLibrary
+  // but now reachable from the admin Settings surface rather than the
+  // contextual Badges/Banners view.
   const handleSelectLayout = useCallback((layout: LayoutDefinition) => {
-    setActiveLayoutLibrary(null);
     setEditor({ type: layout.type, campaign: createCampaignDraft(layout.type, layout) });
   }, []);
 
@@ -242,9 +245,7 @@ export default function App() {
   }, []);
 
   const allCampaigns = [...badges, ...banners];
-  const activeViewLabel = activeLayoutLibrary
-    ? `${activeLayoutLibrary === "badge" ? "Badge" : "Banner"} Layouts`
-    : activeView;
+  const activeViewLabel = activeView;
 
   // If editor is open, show it
   if (editor) {
@@ -287,13 +288,9 @@ export default function App() {
               <h1>{activeViewLabel}</h1>
             </div>
             <div className="workspace-head-actions">
-              {!activeLayoutLibrary && (
-                <>
-                  <span className="workspace-pill">{allCampaigns.filter((c) => c.status === "live").length} live</span>
-                  <button className="ghost-btn" onClick={() => handleAdd("badge")}>+ New badge</button>
-                  <button className="ghost-btn" onClick={() => handleAdd("banner")}>+ New banner</button>
-                </>
-              )}
+              <span className="workspace-pill">{allCampaigns.filter((c) => c.status === "live").length} live</span>
+              <button className="ghost-btn" onClick={() => handleAdd("badge")}>+ New badge</button>
+              <button className="ghost-btn" onClick={() => handleAdd("banner")}>+ New banner</button>
             </div>
           </section>
 
@@ -306,37 +303,27 @@ export default function App() {
           )}
 
           {activeView === "Badges" && (
-            activeLayoutLibrary === "badge" ? (
-              <LayoutLibrary type="badge" onBack={() => setActiveLayoutLibrary(null)} onSelectLayout={handleSelectLayout} />
-            ) : (
-              <CampaignList
-                campaigns={badges}
-                type="badge"
-                onEdit={handleEdit}
-                onAdd={() => handleAdd("badge")}
-                onOpenLayouts={() => setActiveLayoutLibrary("badge")}
-                onBulkDuplicate={handleBulkDuplicate}
-                onBulkStatusChange={handleBulkStatusChange}
-                onBulkDelete={handleBulkDelete}
-              />
-            )
+            <CampaignList
+              campaigns={badges}
+              type="badge"
+              onEdit={handleEdit}
+              onAdd={() => handleAdd("badge")}
+              onBulkDuplicate={handleBulkDuplicate}
+              onBulkStatusChange={handleBulkStatusChange}
+              onBulkDelete={handleBulkDelete}
+            />
           )}
 
           {activeView === "Banners" && (
-            activeLayoutLibrary === "banner" ? (
-              <LayoutLibrary type="banner" onBack={() => setActiveLayoutLibrary(null)} onSelectLayout={handleSelectLayout} />
-            ) : (
-              <CampaignList
-                campaigns={banners}
-                type="banner"
-                onEdit={handleEdit}
-                onAdd={() => handleAdd("banner")}
-                onOpenLayouts={() => setActiveLayoutLibrary("banner")}
-                onBulkDuplicate={handleBulkDuplicate}
-                onBulkStatusChange={handleBulkStatusChange}
-                onBulkDelete={handleBulkDelete}
-              />
-            )
+            <CampaignList
+              campaigns={banners}
+              type="banner"
+              onEdit={handleEdit}
+              onAdd={() => handleAdd("banner")}
+              onBulkDuplicate={handleBulkDuplicate}
+              onBulkStatusChange={handleBulkStatusChange}
+              onBulkDelete={handleBulkDelete}
+            />
           )}
 
           {activeView === "Global Styles" && <GlobalStyles />}
@@ -364,7 +351,9 @@ export default function App() {
 
           {activeView === "Analytics" && <AnalyticsDashboard campaigns={allCampaigns} />}
 
-          {activeView === "Settings" && <Settings onNavigate={handleNavigate} />}
+          {activeView === "Settings" && (
+            <Settings onNavigate={handleNavigate} onSelectLayout={handleSelectLayout} />
+          )}
         </main>
       </div>
     </div>
