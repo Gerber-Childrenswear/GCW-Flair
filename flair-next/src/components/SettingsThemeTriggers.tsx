@@ -254,7 +254,7 @@ function ThemeTriggerForm({
     <div className="sc-page">
       <div className="sc-page-head">
         <div>
-          <button type="button" className="sc-back" onClick={onCancel} style={{ margin: 0, marginBottom: 8 }}>
+          <button type="button" className="sc-back" onClick={onCancel}>
             ‹ Back to Theme Triggers
           </button>
           <h1 className="sc-title">{mode === "add" ? "Add Theme Trigger" : "Edit Theme Trigger"}</h1>
