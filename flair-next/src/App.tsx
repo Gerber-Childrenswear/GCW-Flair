@@ -5,6 +5,7 @@ import QuickActions from "./components/QuickActions";
 import CampaignList from "./components/CampaignList";
 import CampaignEditor from "./components/CampaignEditor";
 import BadgeEditor from "./components/BadgeEditor";
+import BannerEditor from "./components/BannerEditor";
 import Settings from "./components/Settings";
 import GlobalStyles from "./components/GlobalStyles";
 import AutomationCenter from "./components/AutomationCenter";
@@ -248,16 +249,23 @@ export default function App() {
   const allCampaigns = [...badges, ...banners];
   const activeViewLabel = activeView;
 
-  // If editor is open, show it. Badge edits use the lean BadgeEditor;
-  // banner edits stay on the legacy CampaignEditor for now.
+  // If editor is open, show it. Badge AND Banner edits use their own lean
+  // editors; the legacy CampaignEditor is kept around only as a fallback
+  // for any other campaign type that lands later.
   if (editor) {
     const isBadge = editor.type === "badge";
+    const isBanner = editor.type === "banner";
+    const usesLeanEditor = isBadge || isBanner;
+    const handleEditorDelete = (id: string) => {
+      handleBulkDelete(new Set([id]));
+      setEditor(null);
+    };
     return (
       <div className="app-shell">
         <div className="workspace">
           <Sidebar activeApp={activeView} onNavigate={handleNavigate} />
           <main className="content">
-            {!isBadge && (
+            {!usesLeanEditor && (
               <section className="workspace-head">
                 <div>
                   <p className="workspace-kicker">Gerber Childrenswear</p>
@@ -274,6 +282,14 @@ export default function App() {
                 campaign={editor.campaign}
                 onSave={handleSave}
                 onCancel={handleCancelEdit}
+                onDelete={handleEditorDelete}
+              />
+            ) : isBanner ? (
+              <BannerEditor
+                campaign={editor.campaign}
+                onSave={handleSave}
+                onCancel={handleCancelEdit}
+                onDelete={handleEditorDelete}
               />
             ) : (
               <CampaignEditor

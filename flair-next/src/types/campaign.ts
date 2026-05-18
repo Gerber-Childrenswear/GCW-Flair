@@ -61,6 +61,19 @@ export type CampaignPlacement = {
   deviceScope: DeviceScope;
 };
 
+// ── Banner element ordering ──────────────────────────────────────────────────
+// The four content slots a banner can render. Merchants reorder these in the
+// Banner editor; a blank text field hides that element at the storefront
+// render. The element list is closed — no multiples of any element.
+export type BannerElement = "headline" | "copy" | "details" | "countdown";
+
+export const DEFAULT_BANNER_ELEMENT_ORDER: BannerElement[] = [
+  "headline",
+  "copy",
+  "details",
+  "countdown",
+];
+
 // ── Creative ──────────────────────────────────────────────────────────────────
 export type Creative = {
   text: string;
@@ -86,6 +99,24 @@ export type Creative = {
   imageWidth?: number | null;
   imageHeight?: number | null;
   imageSourceUrl?: string | null;
+  // ── Banner content (per-instance text for the 4 banner elements) ──
+  // Visual styling (font / colour / size) comes from the Global Style;
+  // these carry the actual text the merchant typed. A blank field hides
+  // that element from the rendered banner. bannerElementOrder controls
+  // the top-to-bottom order — every element key appears exactly once,
+  // including countdown (whose live timer is set by the parent Campaign,
+  // not the Banner editor; see CountdownConfig on Campaign).
+  bannerHeadline?: string;
+  bannerCopy?: string;
+  bannerDetails?: string;
+  bannerCountdownLabel?: string;
+  // Countdown is the one element that doesn't auto-hide when its text is
+  // blank — the digits render even without a label. Merchants explicitly
+  // opt in (or out) with this flag. Defaults to true for new banners so
+  // the editor preview is populated; legacy data without the field is
+  // treated as "off" to preserve the original Style-editor behaviour.
+  bannerCountdownEnabled?: boolean;
+  bannerElementOrder?: BannerElement[];
   altText?: string;
 };
 

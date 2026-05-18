@@ -896,3 +896,484 @@
 .bc-row + .bc-group--nested {
   margin-top: var(--space-3);
 }
+
+/* ─── Library state — Active / Archived segmented toggle ─────────────────── */
+
+.be-segmented {
+  display: flex;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.be-segmented-btn {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-surface);
+  border: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.be-segmented-btn + .be-segmented-btn {
+  border-left: 1px solid var(--border-strong);
+}
+
+.be-segmented-btn:hover:not(.is-active) {
+  background: var(--color-navy-10);
+}
+
+.be-segmented-btn.is-active {
+  background: var(--color-oxford-blue);
+  color: var(--text-inverse);
+}
+
+.be-segmented-btn.is-active .dot {
+  background: var(--text-inverse);
+}
+
+/* ─── Used in Campaigns list ─────────────────────────────────────────────── */
+
+.be-used-in-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.be-used-in-item {
+  font-size: 13px;
+  color: var(--text-primary);
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.be-used-in-item::before {
+  content: "•";
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.be-used-in-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ─── Danger zone — Delete badge card ────────────────────────────────────── */
+
+.be-danger-zone {
+  border-color: var(--color-coral-sale);
+}
+
+.be-danger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: 1px solid var(--color-coral-sale);
+  border-radius: var(--radius-sm);
+  color: var(--color-coral-sale);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.be-danger-btn:hover {
+  background: var(--color-coral-tint);
+}
+
+/* ─── Delete confirmation modal ──────────────────────────────────────────── */
+
+.be-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 39, 68, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: var(--space-6);
+}
+
+.be-modal {
+  background: var(--bg-surface);
+  width: 480px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  box-shadow: 0 24px 64px rgba(0, 39, 68, 0.25);
+}
+
+.be-modal-title {
+  margin: 0 0 var(--space-3);
+  font-size: 18px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-oxford-blue);
+}
+
+.be-modal-body {
+  margin: 0 0 var(--space-3);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.be-modal-list {
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.be-modal-list-item {
+  font-size: 13px;
+  color: var(--text-primary);
+  padding: 6px 10px;
+  background: var(--color-navy-10);
+  border-radius: var(--radius-sm);
+}
+
+.be-modal-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+/* ─── Library state — Active / Archived segmented toggle ─────────────────── */
+
+.be-segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.be-segmented-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.be-segmented-btn:hover:not(.is-active) {
+  color: var(--text-primary);
+}
+
+.be-segmented-btn.is-active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+}
+
+.be-segmented-btn .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.be-segmented-btn .dot.ok { background: var(--ok); }
+.be-segmented-btn .dot.idle { background: var(--idle); }
+
+/* ─── Used in Campaigns list ──────────────────────────────────────────────── */
+
+.be-used-in-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.be-used-in-item {
+  font-size: 13px;
+  color: var(--text-primary);
+  padding: 8px 10px;
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-navy-20);
+}
+
+.be-used-in-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ─── Danger zone — Delete badge card ─────────────────────────────────────── */
+
+.be-danger-zone {
+  border-color: var(--color-coral-sale);
+  background: var(--color-coral-tint);
+}
+
+.be-danger-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-coral-sale);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: left;
+}
+
+.be-danger-btn:hover {
+  text-decoration: underline;
+}
+
+/* ─── Delete confirmation modal ──────────────────────────────────────────── */
+
+.be-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 29, 37, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: 1000;
+}
+
+.be-modal {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  max-width: 480px;
+  width: 100%;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.be-modal-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-oxford-blue);
+  margin: 0;
+}
+
+.be-modal-body {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.be-modal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.be-modal-list-item {
+  font-size: 13px;
+  padding: 6px 10px;
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-coral-sale);
+}
+
+.be-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* ─── Banner editor — Elements section (drag-to-reorder) ─────────────────── */
+
+/* The banner preview shell needs more vertical room than the badge one —
+   banners stack multiple text tiers and an optional countdown. */
+.be-preview-shell--banner {
+  min-height: 220px;
+  align-items: stretch;
+  padding: var(--space-4);
+}
+
+.be-elements-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.be-element-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+  cursor: default;
+}
+
+.be-element-row.is-dragging {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.be-element-row.is-drag-over {
+  border-color: var(--color-jordy-blue);
+  background: var(--color-navy-10);
+  box-shadow: 0 -2px 0 0 var(--color-jordy-blue) inset;
+}
+
+.be-drag-handle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 32px;
+  margin-top: 18px; /* aligns roughly with the input baseline */
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: grab;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+}
+
+.be-drag-handle:hover {
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+}
+
+.be-drag-handle:active {
+  cursor: grabbing;
+}
+
+.be-element-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.be-element-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.be-element-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.be-element-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* ─── Switch toggle (Countdown on/off) ───────────────────────────────────── */
+
+.be-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.be-switch-track {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  background: var(--color-navy-20);
+  border-radius: 999px;
+  transition: background 0.12s ease;
+}
+
+.be-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.12s ease;
+}
+
+.be-switch.is-on .be-switch-track {
+  background: var(--color-oxford-blue);
+}
+
+.be-switch.is-on .be-switch-thumb {
+  transform: translateX(14px);
+}
+
+.be-switch.is-on {
+  color: var(--color-oxford-blue);
+}
+
+.be-switch-state {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
